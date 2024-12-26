@@ -7,10 +7,18 @@ PROJECT(AirControl)
 
 set(SOURCES
     src/Database.cpp
+    src/IDatabase.hpp
+    src/Database.hpp
     src/Controller.cpp
+    src/IController.hpp
+    src/Controller.hpp
     src/Airport.cpp
+    src/IAirport.hpp
+    src/Airport.hpp
     src/Flight.cpp
-    src/sources.cpp
+    src/IFlight.hpp
+    src/Flight.hpp
+    src/source.cpp
 )
 
-add_executable(AirControl src/Database.cpp src/Controller.cpp src/Airport.cpp src/Flight.cpp src/source.cpp)
+add_executable(AirControl ${SOURCES})
