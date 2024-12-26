@@ -1,12 +1,14 @@
 #pragma once
 
 #include "IFlight.hpp"
+#include "IPrint.hpp"
 #include <string>
+#include <iostream>
 
 using std::string, std::cin, std::endl, std::cout;
 
 
-class Flight : public IFlight, public: IPrint{
+class Flight : public IFlight, public IPrint{
     private:
         string id_{};
         string base_{};

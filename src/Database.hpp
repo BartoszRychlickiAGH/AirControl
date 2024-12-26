@@ -3,7 +3,7 @@
 #include "IDatabase.hpp"
 
 template<typename T>
-class Database : public IDatabase{
+class Database : public IDatabase<T>{
     private:
         Database() = default;
     public:
