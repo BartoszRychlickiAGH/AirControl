@@ -25,7 +25,6 @@ class Flight : public IFlight, public IPrint{
         void display() override;
         void departure() override;
         void arrival() override;
-        void park() override;
 
         // getters and setters
 

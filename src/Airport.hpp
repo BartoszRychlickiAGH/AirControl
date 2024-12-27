@@ -2,41 +2,44 @@
 
 #include "IAirport.hpp"
 #include "IPrint.hpp"
+#include "Flight.hpp"
 #include <vector>
+#include <memory>
 
-using std::vector;
+using std::vector, std::shared_ptr, std::make_shared;
 
 class Airport : public IAirport, public IPrint{
     private:
         string id_{};
-        string name_{;}
+        string name_{};
         int capacity_{};
-        vector<string>departures_ids{};
-        vector<string>arrivals_ids{};
-        vector<string>parked_ids{};
+        vector<shared_ptr<Flight>>departures_{};
+        vector<shared_ptr<Flight>>arrivals_{};
+        vector<shared_ptr<Flight>>parked_{};
     public:
         // constructor
-        Airport(string p_id, string p_name, int p_capacity, vector<string>p_dep_ids = {},vector<string>p_arr_ids = {}, vector<string>p_park_ids = {});
+        Airport(string p_id, string p_name, int p_capacity, vector<shared_ptr<Flight>>p_dep_ids = {},vector<shared_ptr<Flight>>p_arr_ids = {}, vector<shared_ptr<Flight>>p_park_ids = {});
      
         // methods inherited from interfaces
         void display() override;
-        bool departuresCollision() override;
-        bool arrivalsCollision() override;
-        bool isEmpty() override;
+        bool isFull() override;
+        void displayDepartures() override;
+        void displayArrivals() override;
+        void displayParked() override;
 
         // getters
         string getAirportId(void) const;
         string getAirportName(void) const;
         int getCapacity(void) const;
-        vector<string> getDepartureids(void) const;
-        vector<string> getArrivalsids(void) const;
-        vector<string> getParkedids(void) const;
+        vector<shared_ptr<Flight>> getDepartureids(void) const;
+        vector<shared_ptr<Flight>> getArrivalsids(void) const;
+        vector<shared_ptr<Flight>> getParkedids(void) const;
 
         // setters
         void setId(string p_id);
         void setName(string p_name);
-        void seyCapacity(int p_capacity);
-        void setDeparturesIds(vector<string>p_dep_ids);
-        void setArrivalsIds(vector<string>p_arr_ids);
-        void setParkedIds(vector<string>p_park_ids);
+        void setCapacity(int p_capacity);
+        void setDepartures(vector<shared_ptr<Flight>>p_dep_ids);
+        void setArrivals(vector<shared_ptr<Flight>>p_arr_ids);
+        void setParked(vector<shared_ptr<Flight>>p_park_ids);
 };

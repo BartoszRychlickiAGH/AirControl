@@ -2,7 +2,8 @@
 
 class IAirport{
     public:
-        virtual bool departuresCollision() = 0;
-        virtual bool arrivalsCollision() = 0;
-        virtual bool isEmpty() = 0;
+        virtual bool isFull() = 0;
+        virtual void displayDepartures() = 0;
+        virtual void displayArrivals() = 0;
+        virtual void displayParked() = 0;
 };

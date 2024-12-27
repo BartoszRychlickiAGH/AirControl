@@ -22,11 +22,13 @@ void Flight::display() {
     cout << "Plane Name: " << planeName_ << endl;
 }
 
-void Flight::departure(){}
+void Flight::departure(){
+    // move Flight from parked to departures
+}
 
-void Flight::arrival() {}
-
-void Flight::park(){}
+void Flight::arrival() {
+    // move Flight from arrivals to parked
+}
 
 
 
