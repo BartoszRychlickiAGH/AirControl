@@ -17,14 +17,16 @@ class Flight : public IFlight, public IPrint{
         string flightDate_{};
         string departureTime_{};
         string arrivalTime_{};
+        int demandIndicator{}; // 0 - none demand | -1 - arrival demand | 1 - departure demand 
     public:
         // constructor
-        Flight(string p_id, string p_base, string p_destination, string p_planeName, string p_flightDate, string p_departureTime, string p_arrivalTime);
+        Flight(string p_id, string p_base, string p_destination, string p_planeName, string p_flightDate, string p_departureTime, string p_arrivalTime, int p_demandIndicator = 0);
 
         // methods inherited from interfaces
         void display() override;
         void departure() override;
         void arrival() override;
+        void park() override;
 
         // getters and setters
 
@@ -35,5 +37,6 @@ class Flight : public IFlight, public IPrint{
         string getFlightDate(void) const;    void setFlightDate(string p_FlightDate);
         string getDepartureTime(void) const; void setDepartureTime(string p_DepartureTime);
         string getArrivalTime(void) const;   void setArrivalTime(string p_ArrivalTime);
+        int getDemandIndicator(void) const;  void setdemandIndicator(int p_demandIndicator);
 
 };

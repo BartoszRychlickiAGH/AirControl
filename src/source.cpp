@@ -1,11 +1,14 @@
 #include <iostream>
 
+using std::endl, std::cout;
 
+#include "validation.hpp"
 
 int main(){
-    // map<shared_ptr<Airport>,vector<shared_ptr<Flight>>>
     
-    std::cout << "Test passed" << std::endl;
+    // cout << getCurrentTime() << endl;
+    cout << ((Validation::isTime(getCurrentTime()))? "yes":"no") << endl;
+
 
     return 0;
 }
