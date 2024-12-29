@@ -5,9 +5,11 @@
 #include <regex>
 #include <sstream>
 #include <iomanip>
+#include <vector>
 
+#include "Airport.hpp"
 
-using std::string, std::regex_match, std::regex;
+using std::string, std::regex_match, std::regex, std::vector;
 
 class Validation{
     private:
@@ -63,17 +65,46 @@ class Validation{
             return false;
         }
 
+        // check if given date is correct (given date cannot be less than 1.1.2025)
+        {
+            string year{};
+            
+            for (char& c : text) {
+
+                if (c == '-') {
+
+                    break;
+
+                }
+                else {
+
+                    year.push_back(c);
+
+                }
+
+            }
+
+            if(std::stoi(year)< 2025){
+                return false;
+            }
+
+
+        }
+
         return true;
     }
     
     // check if given text is time
     static bool isTime(string text) { // format: HH:MM
+
         if(text.size() != 5) {
             return false;
         }
+
         if(text[2] != ':') {
             return false;
         }
+
         for(int i = 0; i < 5; i++) {
             if(i == 2) {
                 continue;
@@ -93,6 +124,16 @@ class Validation{
 
     static bool checkFlightMode(string mode){
         return (mode == "arrival" || mode == "departure" || mode == "parked" || mode == "Arrival" || mode == "Departure" || mode == "Parked")? true: false;
+    }
+
+    // check if airport of given name exist
+    static bool airportExist(vector<shared_ptr<Airport>> airports, string& name){
+        for(shared_ptr<Airport>airport : airports){
+            if(airport->getAirportName() == name){
+                return true;
+            }
+        }
+        return false;
     }
 
     Validation(const Validation&) = delete;

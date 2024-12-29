@@ -1,25 +1,12 @@
+#pragma once
+
 #include "Flight.hpp"
-
-
-
-// constructor
-Flight::Flight(string p_id, string p_base, string p_destination, string p_planeName, string p_flightDate, string p_departureTime, string p_arrivalTime, int p_demandIndicator):
-    id_(p_id),
-    base_(p_base),
-    destination_(p_destination),
-    planeName_(p_planeName),
-    flightDate_(p_flightDate),
-    departureTime_(p_departureTime),
-    arrivalTime_(p_arrivalTime),
-    demandIndicator(p_demandIndicator)
-{}
-
 
 // methods inherited from interfaces
 void Flight::display() {
     cout << "Flight Id: " << id_ << " Date: " << flightDate_ << endl;;
     cout << base_ << " -> " << destination_ << endl;
-    cout << departureTime_ << "     " << arrivalTime_ << endl;
+    cout << departureTime_ << "       " << arrivalTime_ << endl;
     cout << "Plane Name: " << planeName_ << endl;
 }
 

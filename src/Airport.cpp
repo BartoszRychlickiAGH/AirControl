@@ -59,7 +59,13 @@ void Airport::displayParked() {
     cout << endl;
 }
 
-
+void Airport::addFlight(shared_ptr<Flight>flight){
+    if(flight->getBase() == name_){
+        departures_.push(flight);
+    }else if(flight->getDestination() == name_){
+        arrivals_.push(flight);
+    }
+}
 
 // getters
 string Airport::getAirportId(void) const{ return id_;}

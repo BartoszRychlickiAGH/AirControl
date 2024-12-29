@@ -21,7 +21,7 @@ class Airport : public IAirport, public IPrint{
         multimap<int,shared_ptr<Flight>>pendingDemands{};
     public:
         // constructor
-        Airport(string p_id, string p_name, int p_capacity, priority_queue<shared_ptr<Flight>>p_dep_ids = {}, priority_queue<shared_ptr<Flight>>p_arr_ids = {}, vector<shared_ptr<Flight>>p_park_ids = {}, multimap<int, shared_ptr<Flight>>p_pendingDemands = {});
+        Airport(string p_id = "", string p_name = "", int p_capacity = 0, priority_queue<shared_ptr<Flight>>p_dep_ids = {}, priority_queue<shared_ptr<Flight>>p_arr_ids = {}, vector<shared_ptr<Flight>>p_park_ids = {}, multimap<int, shared_ptr<Flight>>p_pendingDemands = {});
      
         // methods inherited from interfaces
         void display() override;
@@ -29,6 +29,7 @@ class Airport : public IAirport, public IPrint{
         void displayDepartures() override;
         void displayArrivals() override;
         void displayParked() override;
+        void addFlight(shared_ptr<Flight>flight) override;
 
         // getters
         string getAirportId(void) const;
