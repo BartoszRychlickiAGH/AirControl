@@ -1,9 +1,10 @@
 #pragma once
 
 #include "IController.hpp"
+#include "IController_Airport.hpp"
 #include "Airport.hpp"
 
-class Controller : public IController{
+class Controller : public IController, public IControlAirport{
     private:
         shared_ptr<Airport>airport_;
         vector<shared_ptr<Airport>>airports_;

@@ -1,6 +1,9 @@
 #pragma once
 
 #include "Flight.hpp"
+#include <memory>
+
+using std::shared_ptr;
 
 // methods inherited from interfaces
 void Flight::display() {
@@ -18,10 +21,6 @@ void Flight::arrival() {
     demandIndicator = -1;
 }
 
-void Flight::park(){
-  demandIndicator = 0;  
-}
-
 // getters                                             and            setters
 string Flight::getId(void)            const{ return id_;  }             void Flight::setId(string p_Id){ id_ = p_Id; }
 string Flight::getBase(void)          const{ return base_; }            void Flight::setBase(string p_Base){ base_ = p_Base; }
@@ -31,3 +30,9 @@ string Flight::getFlightDate(void)    const{ return flightDate_; }      void Fli
 string Flight::getDepartureTime(void) const{return departureTime_;}     void Flight::setDepartureTime(string p_DepartureTime){ departureTime_ = p_DepartureTime; }
 string Flight::getArrivalTime(void)   const{ return arrivalTime_; }     void Flight::setArrivalTime(string p_ArrivalTime){ arrivalTime_ = p_ArrivalTime;}
 int Flight::getDemandIndicator(void)  const{ return demandIndicator;}   void Flight::setdemandIndicator(int p_demandIndicator){demandIndicator = p_demandIndicator;}
+
+
+// operators overload
+bool Flight::operator==(const shared_ptr<Flight>& obj) {
+    return (obj->getId() == getId()) ? true : false;
+}

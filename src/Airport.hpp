@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IAirport.hpp"
+#include "IController_Airport.hpp"
 #include "IPrint.hpp"
 #include "Flight.hpp"
 #include <vector>
@@ -10,7 +11,7 @@
 
 using std::vector, std::shared_ptr, std::make_shared, std::multimap, std::pair, std::priority_queue;
 
-class Airport : public IAirport, public IPrint{
+class Airport : public IAirport, public IPrint, public IControlAirport, public IPrintAirport{
     private:
         string id_{};
         string name_{};
@@ -19,6 +20,7 @@ class Airport : public IAirport, public IPrint{
         priority_queue<shared_ptr<Flight>>arrivals_{};
         vector<shared_ptr<Flight>>parked_{};
         multimap<int,shared_ptr<Flight>>pendingDemands{};
+
     public:
         // constructor
         Airport(string p_id = "", string p_name = "", int p_capacity = 0, priority_queue<shared_ptr<Flight>>p_dep_ids = {}, priority_queue<shared_ptr<Flight>>p_arr_ids = {}, vector<shared_ptr<Flight>>p_park_ids = {}, multimap<int, shared_ptr<Flight>>p_pendingDemands = {});
@@ -30,6 +32,9 @@ class Airport : public IAirport, public IPrint{
         void displayArrivals() override;
         void displayParked() override;
         void addFlight(shared_ptr<Flight>flight) override;
+        void checkDemands() override;
+        void display(string mode = "") override;
+
 
         // getters
         string getAirportId(void) const;

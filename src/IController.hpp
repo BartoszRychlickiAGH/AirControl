@@ -12,5 +12,4 @@ class IController{
         virtual void editFlight() = 0;
         virtual bool checkCollision(shared_ptr<Flight>flight) = 0;
         virtual void grantDemand() = 0;
-        virtual void checkDemands() = 0;
 };

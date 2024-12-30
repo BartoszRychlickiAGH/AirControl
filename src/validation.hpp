@@ -136,6 +136,81 @@ class Validation{
         return false;
     }
 
+    // check if flight is in queue
+    static bool isInQueue(shared_ptr<Flight>flight, priority_queue<shared_ptr<Flight>>flights) {
+        priority_queue<shared_ptr<Flight>>temp = flights;
+        bool valid{ false };
+        
+        for (int i = 0; i <= flights.size(); i++) {
+            
+            
+            if (
+                temp.top()->getId() == flight->getId() ||
+                temp.top()->getBase() == flight->getBase() ||
+                temp.top()->getDestination() == flight->getDestination() ||
+                temp.top()->getPlaneName() == flight->getPlaneName() ||
+                temp.top()->getFlightDate() == flight->getFlightDate() ||
+                temp.top()->getDepartureTime() == flight->getDepartureTime() ||
+                temp.top()->getArrivalTime() == flight->getArrivalTime() ||
+                temp.top()->getDemandIndicator() == flight->getDemandIndicator()
+                ) 
+            {
+            
+                valid = true;
+            }
+
+
+
+            temp.pop();
+        }
+
+
+    }
+
+    // check if pair is in multimap
+    template<typename T, typename U>
+    static bool isInMultimap(T var1, U var2, multimap<T, U>container) {
+
+        for (auto it = container.begin(); it != container.end(); it++) {
+            if (it->first == var1 and it->second == var2) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    static bool idExist(string id, priority_queue<shared_ptr<Flight>>flights) {
+        priority_queue<shared_ptr<Flight>> temp = flights;
+
+        for (int i = 0; i < temp.size(); i++) {
+            if (temp.top()->getId() == id) {
+            
+                return true;
+            }
+
+            temp.pop();
+        }
+
+
+        return false;
+    }
+
+    static bool idExist(string id, vector<shared_ptr<Flight>>flights) {
+        
+        for (shared_ptr<Flight>flight : flights) {
+            if (flight->getId() == id) {
+                
+                return true;
+
+            }
+        }
+
+        return false;
+    }
+
+
     Validation(const Validation&) = delete;
     Validation& operator=(const Validation&) = delete;
     Validation(const Validation&&) = delete;

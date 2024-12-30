@@ -4,9 +4,9 @@
 #include "IPrint.hpp"
 #include <string>
 #include <iostream>
+#include <memory>
 
-using std::string, std::cin, std::endl, std::cout;
-
+using std::string, std::cin, std::endl, std::cout, std::shared_ptr;
 
 class Flight : public IFlight, public IPrint{
     private:
@@ -17,7 +17,7 @@ class Flight : public IFlight, public IPrint{
         string flightDate_{};
         string departureTime_{};
         string arrivalTime_{};
-        int demandIndicator{0}; // 0 - none demand | -1 - arrival demand | 1 - departure demand 
+        int demandIndicator{0}; // 0 - none demand | -1 - arrival demand | 1 - departure demand  | 255 - access granted ( waiting for another demand)
     public:
         // constructor
         Flight(string p_id = "", string p_base = "", string p_destination = "", string p_planeName = "", string p_flightDate = "", string p_departureTime = "", string p_arrivalTime = "") :
@@ -34,7 +34,6 @@ class Flight : public IFlight, public IPrint{
         void display() override;
         void departure() override;
         void arrival() override;
-        void park() override;
 
         // getters and setters
 
@@ -47,4 +46,6 @@ class Flight : public IFlight, public IPrint{
         string getArrivalTime(void) const;   void setArrivalTime(string p_ArrivalTime);
         int getDemandIndicator(void) const;  void setdemandIndicator(int p_demandIndicator);
 
+
+        bool operator==(const shared_ptr<Flight>& obj);
 };

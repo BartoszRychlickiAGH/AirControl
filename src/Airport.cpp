@@ -1,4 +1,5 @@
 #include "Airport.hpp"
+#include "validation.hpp"
 
 
 Airport::Airport(string p_id, string p_name, int p_capacity, priority_queue<shared_ptr<Flight>>p_dep_ids,priority_queue<shared_ptr<Flight>>p_arr_ids, vector<shared_ptr<Flight>>p_park_ids, multimap<int,shared_ptr<Flight>>p_pendingDemands):
@@ -49,6 +50,8 @@ void Airport::displayArrivals() {
     }
     cout << endl;
 }
+
+// display parked flights
 void Airport::displayParked() {
     int i = 0;
     cout << "Parked: | ";
@@ -59,6 +62,7 @@ void Airport::displayParked() {
     cout << endl;
 }
 
+// add new flight
 void Airport::addFlight(shared_ptr<Flight>flight){
     if(flight->getBase() == name_){
         departures_.push(flight);
@@ -66,6 +70,81 @@ void Airport::addFlight(shared_ptr<Flight>flight){
         arrivals_.push(flight);
     }
 }
+
+// check demands for all flights pinned to the airport
+void Airport::checkDemands() {
+    priority_queue<shared_ptr<Flight>>temp1 = departures_, temp2 = arrivals_,temp_dep,temp_arr;
+    
+    // for all flights in departure_ check
+    for (int j = 0; j <= (int)fmax(departures_.size(), arrivals_.size()); j++) {
+        if (j < departures_.size()) {
+            
+            // check if given demand exist ifn then add do pendingDemands
+            
+            if (Validation::isInMultimap(temp1.top()->getDemandIndicator(), temp1.top(), pendingDemands)) {
+            
+                pendingDemands.insert(std::make_pair(temp1.top()->getDemandIndicator(), temp1.top()));
+
+            }
+
+            if (temp1.top()->getDemandIndicator() == 1) {
+                temp_dep.push(temp1.top());
+            }
+
+            temp1.pop();
+        }
+        if (j < arrivals_.size()) {
+         
+            // check if given demand exist ifn then add do pendingDemands
+            if (Validation::isInMultimap(temp2.top()->getDemandIndicator(), temp2.top(), pendingDemands)) {
+
+                pendingDemands.insert(std::make_pair(temp2.top()->getDemandIndicator(), temp2.top()));
+
+            }
+
+            if (temp2.top()->getDemandIndicator() == 1) {
+                temp_arr.push(temp2.top());
+            }
+
+            temp2.pop();
+        }
+    }
+
+    // updating arrivals_ and departure_
+    arrivals_ = temp_arr;
+    departures_ = temp_dep;
+
+
+    
+    // for all flights in parked_ check
+    for (shared_ptr<Flight>flight : parked_) {
+        
+        // if flight is not in pendingDemands then
+
+        if (!Validation::isInMultimap(flight->getDemandIndicator(), flight, pendingDemands)) {
+            
+            pendingDemands.insert(std::make_pair(flight->getDemandIndicator(), flight));
+
+        }
+    
+    }
+
+}
+
+void Airport::display(string mode) {
+    if(mode == "arrival" || mode == "Arrival"){
+        displayArrivals();
+    }else if(mode == "departure" || mode == "Departure"){
+        displayDepartures();
+    }else if(mode == "parked" || mode == "Parked"){
+        displayParked();
+    }else{
+        displayArrivals();
+        displayDepartures();
+        displayParked();
+    }
+}
+
 
 // getters
 string Airport::getAirportId(void) const{ return id_;}
