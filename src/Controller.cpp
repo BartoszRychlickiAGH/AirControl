@@ -168,7 +168,7 @@ void Controller::addFlight() {
 
 
     // create new flight
-    shared_ptr<Flight> flight(new Flight(id, base, destination, planeName, flightDate, departureTime, arrivalTime));
+    shared_ptr<Flight> flight(new Flight(std::stoi(id), base, destination, planeName, flightDate, departureTime, arrivalTime));
 
     // check if given departure time nor arrival time is already taken
     if(checkCollision(flight)) {
@@ -440,18 +440,20 @@ void Controller::editFlight() {
 
                 } while (!Validation::isnumber(newId) and !Validation::idExist(newId,airport_->getArrivalsids()) and !Validation::idExist(newId, airport_->getDepartureids()) and !Validation::idExist(newId, airport_->getParkedids()));
 
+                int newId_int{std::stoi(newId)};
+
                 if (mode == "arrival") {
                     
-                    airport_->getArrivalsids().top()->setId(newId);
+                    airport_->getArrivalsids().top()->setId(newId_int);
 
                 }else if (mode == "departure") {
                 
-                    airport_->getDepartureids().top()->setId(newId);
+                    airport_->getDepartureids().top()->setId(newId_int);
                 
                 }
                 else if (mode == "parked") {
                 
-                    airport_->getParkedids()[std::stoi(i) - 1]->setId(newId);
+                    airport_->getParkedids()[std::stoi(i) - 1]->setId(newId_int);
                 
                 }
                 

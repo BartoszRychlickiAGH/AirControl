@@ -19,7 +19,7 @@ set(SOURCES
     src/IFlight.hpp
     src/Flight.hpp
     src/source.cpp
-    src/IController_Airport.hpp
+    src/ICompress.hpp
 )
 
 add_executable(AirControl ${SOURCES})

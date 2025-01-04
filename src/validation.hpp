@@ -185,7 +185,7 @@ class Validation{
         priority_queue<shared_ptr<Flight>> temp = flights;
 
         for (int i = 0; i < temp.size(); i++) {
-            if (temp.top()->getId() == id) {
+            if (temp.top()->getId() == std::stoi(id)) {
             
                 return true;
             }
@@ -200,7 +200,7 @@ class Validation{
     static bool idExist(string id, vector<shared_ptr<Flight>>flights) {
         
         for (shared_ptr<Flight>flight : flights) {
-            if (flight->getId() == id) {
+            if (flight->getId() == std::stoi(id)) {
                 
                 return true;
 

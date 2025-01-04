@@ -2,15 +2,17 @@
 
 #include "IFlight.hpp"
 #include "IPrint.hpp"
+#include "ICompress.hpp"
+
 #include <string>
 #include <iostream>
 #include <memory>
 
 using std::string, std::cin, std::endl, std::cout, std::shared_ptr;
 
-class Flight : public IFlight, public IPrint{
+class Flight : public IFlight, public IPrint, public ICompress{
     private:
-        string id_{};
+        int id_{};
         string base_{};
         string destination_{};
         string planeName_{};
@@ -20,7 +22,7 @@ class Flight : public IFlight, public IPrint{
         int demandIndicator{0}; // 0 - none demand | -1 - arrival demand | 1 - departure demand  | 255 - access granted ( waiting for another demand)
     public:
         // constructor
-        Flight(string p_id = "", string p_base = "", string p_destination = "", string p_planeName = "", string p_flightDate = "", string p_departureTime = "", string p_arrivalTime = "") :
+        Flight(int p_id, string p_base = "", string p_destination = "", string p_planeName = "", string p_flightDate = "", string p_departureTime = "", string p_arrivalTime = "") :
             id_(p_id),
             base_(p_base),
             destination_(p_destination),
@@ -34,10 +36,11 @@ class Flight : public IFlight, public IPrint{
         void display() override;
         void departure() override;
         void arrival() override;
+        vector<string> compress() override;
 
         // getters and setters
 
-        string getId(void) const;            void setId(string p_Id);
+        int getId(void) const;               void setId(int p_Id);
         string getBase(void)const;           void setBase(string p_Base);
         string getDestination(void) const;   void setDestination(string p_Destination);
         string getPlaneName(void) const;     void setPlaneName(string p_PlaneName);

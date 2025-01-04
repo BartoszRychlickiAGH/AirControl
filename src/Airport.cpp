@@ -145,6 +145,64 @@ void Airport::display(string mode) {
     }
 }
 
+vector<string> Airport::compress() {
+    vector<string>data{};
+
+    data[0] = getAirportName();
+    data[1] = std::to_string(getCapacity());
+    data[2] = "";
+    data[3] = "";
+
+    {
+        priority_queue<shared_ptr<Flight>>temp = departures_;
+         
+        // inserting in reverse
+        while (temp.size() != 0) {
+            data[2] += temp.top()->getId() + ",";
+            
+            temp.pop();
+        }
+
+        temp = arrivals_;
+
+        while (temp.size() != 0) {
+            data[3] += temp.top()->getId() + ",";
+
+            temp.pop();
+        }
+
+    }
+
+    data[4] = "";
+
+    for (shared_ptr<Flight>flight : parked_) {
+        string tempStr{std::to_string(flight->getId())};
+
+        
+        tempStr.push_back(',');
+
+
+        data[4] += tempStr;
+    }
+
+    data[5] = ""; data[6] = ""; data[7] = "";
+
+    for (auto it = pendingDemands.begin(); it != pendingDemands.end(); ++it) {
+        if (it->first == 1) { // departures
+            data[5] += std::to_string(it->second->getId());
+        }
+        else if(it->first == -1){ // arrival
+            data[6] += std::to_string(it->second->getId());
+        }
+        else { // park
+            data[7] += std::to_string(it->second->getId());
+        }
+    }
+
+    return data;
+}
+
+
 
 // getters
 string Airport::getAirportId(void) const{ return id_;}

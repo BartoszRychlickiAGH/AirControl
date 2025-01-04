@@ -1,19 +1,33 @@
 #pragma once
 
 #include "IDatabase.hpp"
+#include <vector>
+#include <string>
+#include <windows.h> // must be before sql.h and others
+#include <sql.h>
+#include <sqlext.h>
+#include <cstdint>
 
-template<typename T>
-class Database : public IDatabase<T>{
-    private:
-        Database() = default;
-    public:
-        vector<shared_ptr<T>> pull(string table) override;
+using std::vector, std::string;
 
-        void push(string table, vector<shared_ptr<T>> data) override;
 
-        Database(const Database&) = delete;
-        Database &operator=(const Database&) = delete;
-        Database(const Database&&) = delete;
-        Database &operator=(const Database&&) = delete;
+class Database : public IDatabase {
+private:
+    SQLHENV hEnv{};
+    SQLHDBC hDbc{};
+    SQLHSTMT hStmt{};
+    SQLRETURN ret{};
+    
+
+
+public:
+    Database();
+
+
+    void pull(string table) override;
+    void push(string table, vector<string>values) override;
+
+
+    ~Database();
 
 };

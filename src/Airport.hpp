@@ -4,14 +4,13 @@
 #include "IController_Airport.hpp"
 #include "IPrint.hpp"
 #include "Flight.hpp"
-#include <vector>
-#include <memory>
+
 #include <map>
 #include <queue>
 
-using std::vector, std::shared_ptr, std::make_shared, std::multimap, std::pair, std::priority_queue;
+using std::multimap, std::pair, std::priority_queue;
 
-class Airport : public IAirport, public IPrint, public IControlAirport, public IPrintAirport{
+class Airport : public IAirport, public IPrint, public IControlAirport, public IPrintAirport, public ICompress{
     private:
         string id_{};
         string name_{};
@@ -34,6 +33,7 @@ class Airport : public IAirport, public IPrint, public IControlAirport, public I
         void addFlight(shared_ptr<Flight>flight) override;
         void checkDemands() override;
         void display(string mode = "") override;
+        vector<string> compress() override;
 
 
         // getters
