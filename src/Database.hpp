@@ -24,7 +24,7 @@ public:
     Database();
 
 
-    void pull(string table) override;
+    vector<shared_ptr<Airport>> pull() override;
     void push(string table, vector<string>values) override;
 
 

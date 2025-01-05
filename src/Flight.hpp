@@ -22,14 +22,15 @@ class Flight : public IFlight, public IPrint, public ICompress{
         int demandIndicator{0}; // 0 - none demand | -1 - arrival demand | 1 - departure demand  | 255 - access granted ( waiting for another demand)
     public:
         // constructor
-        Flight(int p_id, string p_base = "", string p_destination = "", string p_planeName = "", string p_flightDate = "", string p_departureTime = "", string p_arrivalTime = "") :
+        Flight(int p_id, string p_base = "", string p_destination = "", string p_planeName = "", string p_flightDate = "", string p_departureTime = "", string p_arrivalTime = "", int p_demand = 0) :
             id_(p_id),
             base_(p_base),
             destination_(p_destination),
             planeName_(p_planeName),
             flightDate_(p_flightDate),
             departureTime_(p_departureTime),
-            arrivalTime_(p_arrivalTime)
+            arrivalTime_(p_arrivalTime),
+            demandIndicator(p_demand)
         {}
 
         // methods inherited from interfaces
