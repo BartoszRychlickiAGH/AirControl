@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Flight.hpp"
+#include "validation.hpp"
 #include <memory>
 
 using std::shared_ptr;
@@ -14,11 +15,15 @@ void Flight::display() {
 }
 
 void Flight::departure(){
-    demandIndicator = 1;
+    if (getCurrentTime() == departureTime_) {
+        demandIndicator = 1;
+    }
 }
 
 void Flight::arrival() {
-    demandIndicator = -1;
+    if (getCurrentTime() == arrivalTime_) {
+        demandIndicator = -1;
+    }
 }
 
 vector<string> Flight::compress() {

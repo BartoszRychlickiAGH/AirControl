@@ -4,7 +4,7 @@
 #include "IController_Airport.hpp"
 #include "Airport.hpp"
 
-class Controller : public IController, public IControlAirport{
+class Controller : public IController, public IControlAirport, public IControllRemoveFlight{
     private:
         shared_ptr<Airport>airport_;
         vector<shared_ptr<Airport>>airports_;
@@ -21,6 +21,7 @@ class Controller : public IController, public IControlAirport{
         bool checkCollision(shared_ptr<Flight>flight) override;
         void grantDemand() override;
         void checkDemands() override;
+        void removeFlight(int indicator, shared_ptr<Flight>flight) override;
 
         //setters and getters
         void setAirport(shared_ptr<Airport>p_airports);

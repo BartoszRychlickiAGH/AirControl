@@ -10,7 +10,6 @@
 
 using std::vector, std::string;
 
-
 class Database : public IDatabase {
 private:
     SQLHENV hEnv{};
@@ -23,9 +22,10 @@ private:
 public:
     Database();
 
-
-    vector<shared_ptr<Airport>> pull() override;
+    vector<shared_ptr<Airport>> pullAirports() override;
+    vector<shared_ptr<Flight>> pullFlights() override;
     void push(string table, vector<string>values) override;
+    void update(string table, vector<string>values) override;
 
 
     ~Database();

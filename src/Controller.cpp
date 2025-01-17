@@ -2,6 +2,7 @@
 
 #include "Controller.hpp"
 #include "validation.hpp"
+#include <stack>
 
 
 // function below is made to print use display() function by exact member of priority_queue
@@ -31,7 +32,7 @@ Controller::Controller(shared_ptr<Airport>p_airport, vector<shared_ptr<Airport>>
 //methods inherited from interface
 void Controller::changeAirport() {
     // orint airport
-    string i = 0;
+    string i { "" };
     for(shared_ptr<Airport>airport : airports_) {
         cout << airport->getAirportName() << endl;
     }
@@ -712,12 +713,6 @@ void Controller::editFlight() {
     }
 
 
-    // edit chosen flight
-
-
-
-
-
 }
 
 
@@ -765,14 +760,18 @@ void Controller::grantDemand() {
     // update demands
     airport_->checkDemands();
 
-    string i{};
+    string i{""}; // variable that user will be overwriting to choose demand to grand nor to cancel
+
     auto it = airport_->getPendingDemands().begin();
+    auto temp = std::move(airport_->getDepartureids()); // calibrating the auto type
+    auto temp2 = std::move(airport_->getParkedids());;
+
 
     // print demands
     checkDemands();
 
     do {
-        cout << "Choose demand to approve: (To cancel operation - type -1)" << endl;
+        cout << "Choose demand to approve: (To cancel operation - type -255)" << endl;
         cin >> i;
         if (!!Validation::isnumber(i)) { cout << "Given data is not a number" << endl; }
 
@@ -784,35 +783,50 @@ void Controller::grantDemand() {
     }
     // otherwise grant demands by adding flights to airport's vectors and changing flight's indicator, remove from demands
 
+    // choose: accept demand or cancel demand
+
+
     switch (it->first) {
-    case 1: // departure
-        {
-        auto temp = std::move(airport_->getDepartureids());
-        // insert obj (which is stored under it->second) into departures_ 
-        temp.push(it->second);
-
-        airport_->setDepartures(temp);
-
-        // change flight indicator
-        it->second->setdemandIndicator(-255);
-
-        break;
-        }
+        case 1: // departure
         
-    case -1: // arrival
-        {
-            auto temp2 = std::move(airport_->getParkedids());
+            // insert obj (which is stored under it->second) into departures_ 
+            temp.push(it->second);
 
-            // insert into parked_
-            temp2.push_back(it->second);
-            airport_->setParked(temp2);
+            // remove from parked
+            removeFlight(0, it->second);
+
+            airport_->setDepartures(temp);
 
 
-            // change flight indicator
-            it->second->setdemandIndicator(-255);
+            // refactor: delete from demands
+
+            // remove from demands
+            removeFlight(-255, it->second);
+
+            // eof refactor
 
             break;
-        }
+        
+        case -1: // arrival
+
+        // insert into parked_
+            temp2.push_back(it->second);
+            
+            // delete from arrival
+            removeFlight(-1, it->second);
+
+            // refacotr: delete from demands
+
+            removeFlight(-255, it->second);
+            
+            // eof refactor
+
+            break;
+        case -255:
+
+            return; // exit action
+        
+            break;
         default: 
            // do nothing
             break;
@@ -835,6 +849,73 @@ void Controller::checkDemands() {
     }
     cout << endl;
 }
+
+void Controller::removeFlight(int indicator, shared_ptr<Flight>flight) {
+
+    int i{ 0 }; // index of element in vector: parked_
+
+    std::stack<shared_ptr<Flight>>buffer;
+    auto tempArrivals = getAirport()->getArrivalsids();
+    auto tempDemands = getAirport()->getPendingDemands();
+
+    switch (indicator) {
+        
+        case 0: // delete from parked
+
+            for (shared_ptr<Flight>obj : getAirport()->getParkedids()) {
+                if (obj == flight) {
+                    getAirport()->getParkedids().erase(getAirport()->getParkedids().begin() + i);
+                    break;
+                }
+                i++;
+            }
+
+            break;
+        case -1: // delete from arrivals
+
+            // find flight in arrivals (priority_queue) to delete
+            for (int j = 0; j <= tempArrivals.size(); ++j) {
+                if (tempArrivals.top() == flight) {
+                    break; // if found then skip
+                }
+                else {
+                    buffer.push(tempArrivals.top()); // else push flight to buffer
+                }
+        
+            
+                tempArrivals.pop();
+
+            }
+
+            // restore flights from buffer to arrivals
+
+            for (int j = 0; buffer.size() != 0; j++) {
+                tempArrivals.push(buffer.top());
+
+                buffer.pop();
+            }
+
+
+            break;
+        default: // delete from demands
+            
+
+            for (auto it = tempDemands.begin(); it != tempDemands.end(); ++it) {
+                if (it->second == flight) {
+                    tempDemands.erase(it);
+                    break;
+                }
+            }
+
+            break;
+    }
+
+}
+
+
+
+
+
 
 //setters and getters
 void Controller::setAirport(shared_ptr<Airport>p_airport) { airport_ = p_airport; }

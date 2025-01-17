@@ -32,7 +32,7 @@ class Airport : public IAirport, public IPrint, public IControlAirport, public I
         void displayParked() override;
         void addFlight(shared_ptr<Flight>flight) override;
         void checkDemands() override;
-        void display(string mode = "") override;
+        void display(string mode) override;
         vector<string> compress() override;
 
 

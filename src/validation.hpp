@@ -223,11 +223,11 @@ static string getCurrentTime() {
     std::time_t now = std::time(0);
     std::tm* local_time = std::localtime(&now);
 
-    // Formatowanie czasu w formacie HH:MM
+    // Formatowanie czasu do formatu HH:MM
     std::ostringstream time_stream;
     time_stream << std::setfill('0') << std::setw(2) << local_time->tm_hour << ":"
         << std::setfill('0') << std::setw(2) << local_time->tm_min;
 
-    // Zwracamy czas w formacie string
+    // Zwracamy czas w typie string
     return time_stream.str();
 }

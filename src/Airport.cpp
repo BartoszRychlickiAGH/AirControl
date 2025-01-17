@@ -26,7 +26,7 @@ bool Airport::isFull() {
 }
 
 void Airport::displayDepartures() {
-    int i = 0;
+    int i{1};
     cout << "Departures: | ";
     priority_queue<shared_ptr<Flight>> temp = departures_;
     while (!temp.empty()) {
@@ -39,7 +39,7 @@ void Airport::displayDepartures() {
 }
 
 void Airport::displayArrivals() {
-    int i = 0;
+    int i{ 1 };
     cout << "Arrivals: | ";
     priority_queue<shared_ptr<Flight>> temp = arrivals_;
     while (!temp.empty()) {
@@ -53,7 +53,7 @@ void Airport::displayArrivals() {
 
 // display parked flights
 void Airport::displayParked() {
-    int i = 0;
+    int i{1};
     cout << "Parked: | ";
     for(shared_ptr<Flight>flight : parked_){
         cout << i << ". Flight " << flight->getId() << " | ";
@@ -79,6 +79,10 @@ void Airport::checkDemands() {
     for (int j = 0; j <= (int)fmax(departures_.size(), arrivals_.size()); j++) {
         if (j < departures_.size()) {
             
+            temp1.top()->arrival();
+            temp1.top()->departure();
+            
+
             // check if given demand exist ifn then add do pendingDemands
             
             if (Validation::isInMultimap(temp1.top()->getDemandIndicator(), temp1.top(), pendingDemands)) {
@@ -95,6 +99,10 @@ void Airport::checkDemands() {
         }
         if (j < arrivals_.size()) {
          
+            temp2.top()->arrival();
+            temp2.top()->departure();
+
+
             // check if given demand exist ifn then add do pendingDemands
             if (Validation::isInMultimap(temp2.top()->getDemandIndicator(), temp2.top(), pendingDemands)) {
 
@@ -138,7 +146,7 @@ void Airport::display(string mode) {
         displayDepartures();
     }else if(mode == "parked" || mode == "Parked"){
         displayParked();
-    }else{
+    }else if(mode == "") {
         displayArrivals();
         displayDepartures();
         displayParked();
