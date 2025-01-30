@@ -10,6 +10,6 @@ class IController{
         virtual void addFlight() = 0;
         virtual void removeFlight() = 0;
         virtual void editFlight() = 0;
-        virtual bool checkCollision(shared_ptr<Flight>flight) = 0;
+        virtual bool checkCollision(shared_ptr<Flight>flight, int mode) = 0;
         virtual void grantDemand() = 0;
 };

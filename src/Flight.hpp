@@ -19,10 +19,10 @@ class Flight : public IFlight, public IPrint, public ICompress{
         string flightDate_{};
         string departureTime_{};
         string arrivalTime_{};
-        int demandIndicator{0}; // 0 - none demand | -1 - arrival demand | 1 - departure demand  | 255 - access granted ( waiting for another demand)
+        int demandIndicator{-255}; // 0 - none demand | -1 - arrival demand | 1 - departure demand  | 255 - access granted ( waiting for another demand)
     public:
         // constructor
-        Flight(int p_id, string p_base = "", string p_destination = "", string p_planeName = "", string p_flightDate = "", string p_departureTime = "", string p_arrivalTime = "", int p_demand = 0) :
+        Flight(int p_id, string p_base = "", string p_destination = "", string p_planeName = "", string p_flightDate = "", string p_departureTime = "", string p_arrivalTime = "", int p_demand = -255) :
             id_(p_id),
             base_(p_base),
             destination_(p_destination),
@@ -52,4 +52,6 @@ class Flight : public IFlight, public IPrint, public ICompress{
 
 
         bool operator==(const shared_ptr<Flight>& obj);
+        void operator=(const shared_ptr<Flight>& obj);
+
 };

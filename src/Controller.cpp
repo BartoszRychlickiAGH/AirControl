@@ -32,11 +32,18 @@ Controller::Controller(shared_ptr<Airport>p_airport, vector<shared_ptr<Airport>>
 //methods inherited from interface
 void Controller::changeAirport() {
     // orint airport
+    int k{1};
     string i { "" };
     for(shared_ptr<Airport>airport : airports_) {
-        cout << airport->getAirportName() << endl;
+        
+        cout << k  << ". " << airport->getAirportName() << endl;
+    
+        k++;
+    
     }
+
     // make user to choose airport
+    
     do{
         cout << "Choose airport: | To cancel operation enter: -1" << endl;
         cin >> i;
@@ -44,7 +51,21 @@ void Controller::changeAirport() {
         if (i == "-1") {
             return;
         }
-    }while(!Validation::isnumber(i) and !Validation::isInRange(std::stoi(i)-1, 0, airports_.size()));
+
+        if(Validation::isnumber(i)) {
+            if (Validation::isInRange(std::stoi(i) - 1, 0, airports_.size())) {
+                break;
+            }
+            else {
+                cout << "Given number is out of range" << endl;
+            }
+        }
+        else {
+            cout << "Given input is NaN" << endl;
+        }
+
+
+    }while(true);
 
     // set airport by assigning chosen one to class variable
     setAirport(airports_[std::stoi(i)-1]);
@@ -52,41 +73,92 @@ void Controller::changeAirport() {
 void Controller::printFlight() {
     // print all flights in general way
     
+    
+
     string i;
     string mode{};
     // make user to choose flight
+
+    chooseMode:
+
     do{
         do{
-        cout << "Choose mode: (arrivals/departure/parked)| To cancel operation enter: -1" << endl;
-        cin >> mode;
-        }while(!Validation::istext(mode) and !Validation::checkFlightMode(mode));
+            cout << "Choose mode: (arrivals/departure/parked/all)| To cancel operation enter: -1" << endl;
+
+            cin >> mode;
+        
+            if (mode == "-1") { 
+                return; 
+            }
+
+        }while(!Validation::istext(mode) and !Validation::checkFlightMode(mode) and mode != " -1");
         
         airport_->display(mode);
 
+        if (mode == "" || mode == "all") {
+            goto chooseMode;
+        }
+
+
+        auto isEmpty = [](string mode, shared_ptr<Airport>airport) {
+            if (regex_match(mode, regex(R"(^[Pp]arke?d?)"))) {
+                return ((airport->getParkedids().size() == 0)? true : false);
+            }
+            else if (regex_match(mode, regex(R"(^[Dd]epartures?)"))) {
+                return ((airport->getDepartureids().size() == 0) ? true : false);
+            }
+            else if (!regex_match(mode, regex(R"(^[Aa]rrivals?)"))) {
+                return ((airport->getArrivalsids().size() == 0) ? true : false);
+            }
+
+            return false;
+        };
+
+                
+        if (isEmpty(mode, airport_)) {
+
+            cout << endl << "Airport has no flights of given mode!" << endl << endl;
+
+            goto chooseMode;
+        }
 
         do {
-            cout << "Choose flight: | To cancel operation enter: -1" << endl;
+
+
+
+            cout << "Choose flight: (To cancel operation enter: -1)" << endl;
+            
             cin >> i;
 
-            if (!Validation::isnumber(i)) {
-                cout << "Given number is not a decimal!" << endl;
+            if (i == "-1") { // canceling operation module
+
+                cout << "exiting ..." << endl;
+
+                return;
             }
-        } while (!Validation::isnumber(i));
+            
+            if (!Validation::isnumber(i)) { // validation module
+            
+                cout << "Given number is not a decimal!" << endl;
+            
+            }
+
+        } while (!Validation::isnumber(i) and i != "-1");
     
 
 
         // check if given index of flight exist in container of flights for given mode
-        if (mode == "parked" and std::stoi(i) >= airport_->getParkedids().size()) {
+        if (regex_match(mode,  regex(R"(^[Pp]arke?d?)")) and std::stoi(i) >= airport_->getParkedids().size()) {
         
             cout << "Picked wrong index of flight in parked ones" << endl;
             continue;
         
-        }else if (mode == "departure" and std::stoi(i) >= airport_->getDepartureids().size()) {
+        }else if (!regex_match(mode, regex(R"(^[Dd]epartures?)")) and std::stoi(i) >= airport_->getDepartureids().size()) {
         
             cout << "Picked wrong index of flight in departure ones" << endl;
             continue;
         
-        }else if (mode == "arrival" and std::stoi(i) >= airport_->getArrivalsids().size()) {
+        }else if (!regex_match(mode, regex(R"(^[Aa]rrivals?)")) and std::stoi(i) >= airport_->getArrivalsids().size()) {
             
             cout << "Picked wrong index of flight in arrival ones" << endl;
             continue;
@@ -96,15 +168,19 @@ void Controller::printFlight() {
         if(i == "-1") {
             return;
         }
+
     }while(!Validation::isnumber(i) and !Validation::isInRange(std::stoi(i)-1, 0, airport_->getDepartureids().size()));
     
     // print chosen flight
-    if(mode == "arrival"){
+    if(regex_match(mode, regex(R"(^[Aa]rrivals?)"))){
         printFlight_queue(std::stoi(i) - 1,airport_->getArrivalsids());
-    }else if(mode == "departure"){
+    }else if(regex_match(mode, regex(R"(^[Dd]epartures?)"))){
         printFlight_queue(std::stoi(i) - 1, airport_->getDepartureids());
-    }else if(mode == "parked"){
+    }else if(regex_match(mode,  regex(R"(^[Pp]arke?d?)"))){
         airport_->getParkedids()[std::stoi(i)-1]->display();
+    }
+    else {
+        airport_->displayFlights();
     }
 }
 void Controller::addFlight() {
@@ -129,41 +205,79 @@ void Controller::addFlight() {
 
         cout << "Enter id: ";                     cin >> id;            if(id == "exit"){ return; }
 
-    }while(!Validation::isnumber(id));
+        if (Validation::isnumber(id)) {
+            if (Validation::idExist(id,airport_->getDepartureids())) {
+                cout << "Given id already exist in Departures' flights" << endl;
+            }
+            else if (Validation::idExist(id, airport_->getArrivalsids())) {
+                cout << "Given id already exist in Arrivals' flights" << endl;
+            }
+            else if (Validation::idExist(id, airport_->getParkedids())) {
+                cout << "Given id already exist in Parked' flights" << endl;
+            }
+            else {
+                break;
+            }
+        }
+        else {
+            cout << "Given input is NaN" << endl;
+        }
+
+
+    }while(true);
+
+   
+    enterAirport:
+
+    auto exist = [](string airport, vector<shared_ptr<Airport>>airports) {
+            return (Validation::istext(airport) && Validation::airportExist(airports, airport)) ? true : false;
+        };
+
 
     do{
-
+            
         cout << endl <<"Enter base: ";            cin >> base;          if(base == "exit"){ return; }
+        if (exist(base, airports_)) {
+            break;
+        }else{
+            cout << "Invalid input - entered not a text or given airport doeas not exist" << endl;
+        }
 
-    }while(!Validation::istext(base));
+    }while(true);
+
+    
 
     do{
 
         cout << endl << "Enter destination: ";    cin >> destination;   if(destination == "exit"){ return; }
 
-    }while(!Validation::istext(destination));
+        if (exist(destination, airports_)) {
+            break;
+        }
+        else {
+            cout << "Invalid input - entered not a text or given airport doeas not exist" << endl;
+        }
+
+
+    }while(true);
+
+    cout << endl << "Enter plane name: ";     cin >> planeName;    if(planeName == "exit"){ return; }
 
     do{
 
-        cout << endl << "Enter plane name: ";     cin >> planeName;    if(planeName == "exit"){ return; }
-
-    }while(!Validation::istext(planeName));
-
-    do{
-
-        cout << endl << "Enter flight date: ";    cin >> flightDate;    if(flightDate == "exit"){ return; }
+        cout << endl << "Enter flight date ( format: YYYY-MM-DD ): ";    cin >> flightDate;    if(flightDate == "exit"){ return; }
 
     }while(!Validation::isDate(flightDate));
 
     do{
 
-        cout << endl << "Enter departure time: "; cin >> departureTime; if(departureTime == "exit"){ return; }
+        cout << endl << "Enter departure time ( format: HH:MM ): "; cin >> departureTime; if(departureTime == "exit"){ return; }
 
     }while(!Validation::isTime(departureTime));
 
     do{
 
-        cout << endl <<"Enter arrival time: ";    cin >> arrivalTime;   if(arrivalTime == "exit"){ return; }
+        cout << endl <<"Enter arrival time ( format: HH:MM ): ";    cin >> arrivalTime;   if(arrivalTime == "exit"){ return; }
 
     }while(!Validation::isTime(arrivalTime));
 
@@ -172,8 +286,15 @@ void Controller::addFlight() {
     shared_ptr<Flight> flight(new Flight(std::stoi(id), base, destination, planeName, flightDate, departureTime, arrivalTime));
 
     // check if given departure time nor arrival time is already taken
-    if(checkCollision(flight)) {
+    if(checkCollision(flight, -255)) {
         return;
+    }
+
+    if( base != airport_->getAirportName() && destination != airport_->getAirportName()) {
+
+        cout << "Invalid permission! Tried to manage another airports" << endl;
+
+        goto  enterAirport;
     }
 
 
@@ -182,13 +303,14 @@ void Controller::addFlight() {
 
         cout << "Airport of given name don't exist" << endl;
 
-        return;
+        goto enterAirport;
     }
-
-
 
     // add flight to airport
     airport_->addFlight(flight);
+
+
+    cout << "Added flight" << endl;
 
 }
 void Controller::removeFlight() {
@@ -226,21 +348,21 @@ void Controller::removeFlight() {
 
 
         // check if given index of flight exist in container of flights for given mode
-        if (mode == "parked" and std::stoi(i) >= airport_->getParkedids().size()) {
+        if (regex_match(mode,  regex(R"(^[Pp]arke?d?)")) and std::stoi(i) >= airport_->getParkedids().size()) {
 
             cout << "Picked wrong index of flight in parked ones" << endl;
 
             continue;
 
         }
-        else if (mode == "departure" and std::stoi(i) >= airport_->getDepartureids().size()) {
+        else if (regex_match(mode, regex(R"(^[Dd]epartures?)")) and std::stoi(i) >= airport_->getDepartureids().size()) {
 
             cout << "Picked wrong index of flight in departure ones" << endl;
 
             continue;
 
         }
-        else if (mode == "arrival" and std::stoi(i) >= airport_->getArrivalsids().size()) {
+        else if (regex_match(mode, regex(R"(^[Aa]rrivals?)")) and std::stoi(i) >= airport_->getArrivalsids().size()) {
 
             cout << "Picked wrong index of flight in arrival ones" << endl;
 
@@ -254,13 +376,15 @@ void Controller::removeFlight() {
     }while (!Validation::isnumber(i) and !Validation::isInRange(std::stoi(i) - 1, 0, airport_->getDepartureids().size()));
 
 
-    if (mode == "arrival") {
+    if (regex_match(mode, regex(R"(^[Aa]rrivals?)"))) {
 
         // remove flight from airport's arrivals
         
         priority_queue<shared_ptr<Flight>>temp1 = airport_->getArrivalsids(),temp2;
         for (int j = 0; j <= airport_->getArrivalsids().size(); ++j) {
             if (std::stoi(i)-1 != j) {
+
+                if (temp1.size() == 0) { break; }
 
                 temp2.push(temp1.top());
             
@@ -273,12 +397,15 @@ void Controller::removeFlight() {
         airport_->setArrivals(temp2);
 
     }
-    else if (mode == "departure") {
+    else if (regex_match(mode, regex(R"(^[Dd]epartures?)"))) {
 
         // remove flight from airport's departures
         priority_queue<shared_ptr<Flight>>temp1 = airport_->getDepartureids(), temp2;
         for (int j = 0; j <= airport_->getDepartureids().size(); ++j) {
             if (std::stoi(i) - 1 != j) {
+
+
+                if (temp1.size() == 0) { break; }
 
                 temp2.push(temp1.top());
             
@@ -291,7 +418,7 @@ void Controller::removeFlight() {
 
 
     }
-    else if (mode == "parked") {
+    else if (regex_match(mode,  regex(R"(^[Pp]arke?d?)"))) {
 
         // delete flight from airport's parked objects
         vector<shared_ptr<Flight>>temp1 = airport_->getParkedids(), temp2;
@@ -309,6 +436,7 @@ void Controller::removeFlight() {
     }
 
 }
+
 void Controller::editFlight() {
     string i{}, k{"-1"}; // i - index of chosen flight to be edited, j - index of field that will be chosen
     string mode{};
@@ -324,8 +452,20 @@ void Controller::editFlight() {
         
         cin >> mode;
         
-        if (!Validation::istext(mode) or !Validation::checkFlightMode(mode)) {
-            cout << "Entered wrong mode" << endl;
+        if (Validation::istext(mode)){
+            if(Validation::checkFlightMode(mode)) {
+
+                break;
+            }
+            else {
+                
+                cout << "Entered wrong flight mode" << endl;
+
+            }
+        }else {
+
+            cout << "Entered input is not a text" << endl;
+        
         }
 
     } while (!Validation::istext(mode) or !Validation::checkFlightMode(mode));
@@ -345,7 +485,7 @@ void Controller::editFlight() {
 
             cin >> i;
 
-            if (!Validation::isnumber(i) || mode == "arrival" && std::stoi(i) > airport_->getArrivalsids().size()) {
+            if (!Validation::isnumber(i) || regex_match(mode, regex(R"(^[Aa]rrivals?)")) && std::stoi(i) > airport_->getArrivalsids().size()) {
                 validate = false;
             }
             else {
@@ -362,7 +502,7 @@ void Controller::editFlight() {
                 }
             }
 
-            if (!Validation::isnumber(i) || mode == "departure" && std::stoi(i) > airport_->getDepartureids().size()) {
+            if (!Validation::isnumber(i) || regex_match(mode, regex(R"(^[Dd]epartures?)")) && std::stoi(i) > airport_->getDepartureids().size()) {
                 validate = false;
             }
             else {
@@ -379,7 +519,7 @@ void Controller::editFlight() {
                 }
             }
 
-            if (!Validation::isnumber(i) || mode == "parked" && std::stoi(i) > airport_->getParkedids().size()) {
+            if (!Validation::isnumber(i) || regex_match(mode,  regex(R"(^[Pp]arke?d?)")) && std::stoi(i) > airport_->getParkedids().size()) {
                 validate = false;
             }
 
@@ -397,9 +537,51 @@ void Controller::editFlight() {
     // at this line - i - is correct and - mode - is correct
    
 
+    auto exist = [](vector<shared_ptr<Airport>> airports, string airport) {
+        if (Validation::istext(airport)) {
+            if (Validation::airportExist(airports, airport)) {
+                return true;
+            }
+            else {
+                cout << "Airport does not exitst" << endl;
+                return false;
+            }
+        }
+        else {
+            cout << "Entered input is not a text" << endl;
+        }
+    };
+
+
+    if (regex_match(mode, regex(R"(^[Aa]rrivals?)"))) {
+        auto temp = airport_->getArrivalsids();
+        for (int j = 0; j < std::stoi(i); j++) {
+            if (j == std::stoi(i) - 1) {
+                flight = temp.top();
+            }
+            temp.pop();
+        }
+    }
+    else if (regex_match(mode, regex(R"(^[Dd]epartures?)"))) {
+        auto temp = airport_->getDepartureids();
+        for (int j = 0; j < std::stoi(i); j++) {
+            if (j == std::stoi(i) - 1) {
+                flight = temp.top();
+            }
+            temp.pop();
+        }
+    }
+    else if (regex_match(mode, regex(R"(^[Pp]arke?d?)"))) {
+        auto temp = airport_->getParkedids();
+        flight = temp[std::stoi(i) - 1];
+    }
+
     // edit mode pseudo - interface
-    while(std::stoi(k) == 0){
+
+
+    while(true){
         do {
+
 
             cout << "Choose field to change: " << endl;
             cout << "1. Id" << endl;
@@ -412,348 +594,273 @@ void Controller::editFlight() {
             cout << "0. Exit" << endl;
             cin >> k;
 
-            if (!Validation::isnumber(k) && !Validation::isInRange(std::stoi(k), 0, 7)) {
+            if (Validation::isnumber(k)){
+                if (Validation::isInRange(std::stoi(k), 0, 7)) {
             
-                cout << "Invalid number!" << endl;
-        
+                    break;
+
+                }
+                else {
+                
+                    cout << "Entered wrong index of action" << endl;
+
+                }
+            }
+            else {
+                cout << "Entered input is NaN!" << endl;
             }
         
-        } while (!Validation::isnumber(k) && !Validation::isInRange(std::stoi(k), 0, 7));
+        } while (true);
 
         switch (std::stoi(k)) {
-            switch (std::stoi(k)) {
-            case 1: {
-                string newId;
+        case 1: {
+            string newId;
 
-                chooseId:
+            chooseId:
 
-                do {
-                    cout << "Enter new Id: ";
-                    cin >> newId;
+            do {
+                cout << "Enter new Id: ";
+                cin >> newId;
 
-                    if (!Validation::isnumber(newId)) {
-                        cout << "Entered NaN" << endl;
-                    }
-                    else if (!Validation::idExist(newId, airport_->getArrivalsids()) and !Validation::idExist(newId, airport_->getDepartureids()) and !Validation::idExist(newId, airport_->getParkedids())) {
-                        cout << "Given id already exist" << endl;
-                    }
-
-
-                } while (!Validation::isnumber(newId) and !Validation::idExist(newId,airport_->getArrivalsids()) and !Validation::idExist(newId, airport_->getDepartureids()) and !Validation::idExist(newId, airport_->getParkedids()));
-
-                int newId_int{std::stoi(newId)};
-
-                if (mode == "arrival") {
+                if (Validation::isnumber(newId)) {
+                    bool temp = (Validation::idExist(newId, airport_->getArrivalsids()) || Validation::idExist(newId, airport_->getDepartureids()) || Validation::idExist(newId, airport_->getParkedids()));
                     
-                    airport_->getArrivalsids().top()->setId(newId_int);
-
-                }else if (mode == "departure") {
-                
-                    airport_->getDepartureids().top()->setId(newId_int);
-                
-                }
-                else if (mode == "parked") {
-                
-                    airport_->getParkedids()[std::stoi(i) - 1]->setId(newId_int);
-                
-                }
-                
-                break;
-            }
-            case 2: {
-                string newBase;
-                
-                do {
-                    cout << "Enter new Base: ";
-                
-                    cin >> newBase;
-                
-                    if (!Validation::istext(newBase)) {
-                        cout << "Given string is not a text" << endl;
-                    }
-                    else if (!Validation::airportExist(airports_,newBase)) {
-                        cout << "Airport of given name don't exist" << endl;
-                    }
-
-
-                } while (!Validation::istext(newBase) and !Validation::airportExist(airports_,newBase));
-
-                if (mode == "arrival") {
-                
-                    airport_->getArrivalsids().top()->setBase(newBase);
-                
-                }else if (mode == "departure") {
-                
-                    airport_->getDepartureids().top()->setBase(newBase);
-                
-                }else if (mode == "parked") {
-                
-                    airport_->getParkedids()[std::stoi(i) - 1]->setBase(newBase);
-                
-                }
-
-                break;
-            }
-            case 3: {
-                string newDestination;
-                
-                do {
-                    cout << "Enter new Destination: ";
-                    cin >> newDestination;
-
-                    if (!Validation::istext(newDestination)) {
-                        cout << "Given string is not a text" << endl;
-                    }
-                    else if (!Validation::airportExist(airports_, newDestination)) {
-                        cout << "Airport of given name don't exist" << endl;
-                    }
-
-
-                } while (!Validation::istext(newDestination) and !Validation::airportExist(airports_, newDestination));
-                
-                if (mode == "arrival") {
-                
-                    flight->setDestination(newDestination);
-                
-                }else if (mode == "departure") {
-                
-                    flight->setDestination(newDestination);
-                
-                }else if (mode == "parked") {
-                
-                    airport_->getParkedids()[std::stoi(i) - 1]->setDestination(newDestination);
-                }
-
-                break;
-            }
-            case 4: {
-                string newPlaneName;
-                
-                do {
-                    cout << "Enter new Plane Name: ";
-                
-                    cin >> newPlaneName;
-                
-                    if (!Validation::istext(newPlaneName)) {
-                        cout << "Given string is not a text" << endl;
-                    }
-
-                } while (!Validation::istext(newPlaneName));
-
-                if (mode == "arrival") {
-                    
-                    airport_->getArrivalsids().top()->setPlaneName(newPlaneName);
-                
-                }else if (mode == "departure") {
-                    
-                    airport_->getDepartureids().top()->setPlaneName(newPlaneName);
-                
-                }else if (mode == "parked") {
-                
-                    airport_->getParkedids()[std::stoi(i) - 1]->setPlaneName(newPlaneName);
-                
-                }
-                
-                break;
-            }
-            case 5: {
-                string newFlightDate;
-                
-                do {
-                    cout << "Enter new Flight Date: ";
-                    cin >> newFlightDate;
-                } while (!Validation::isDate(newFlightDate));
-
-                if (mode == "arrival") {
-                
-                    flight->setFlightDate(newFlightDate);
-                
-                }else if (mode == "departure") {
-                    
-                    flight->setFlightDate(newFlightDate);
-                
-                }else if (mode == "parked") {
-                
-                    airport_->getParkedids()[std::stoi(i) - 1]->setFlightDate(newFlightDate);
-                }
-
-                break;
-            }
-            case 6: {
-                string newDepartureTime;
-                
-                start:
-
-                do {
-                    cout << "Enter new Departure Time: ";
-                    cin >> newDepartureTime;
-                    
-                    if (!Validation::isTime(newDepartureTime)) {
-                        cout << "Entered wrong time format";
-                    }
-                
-                
-                } while (!Validation::isTime(newDepartureTime));
-                
-
-                shared_ptr<Flight>temp;
-
-                if (mode == "arrival") {
-                    
-                    temp = move(flight);
-
-                    if (!checkCollision(temp)) {
-                    
-                        flight->setDepartureTime(newDepartureTime);
-                    
+                    if (temp) {
+                        cout << "Entered Id is taken" << endl; // id exist in one of the containers
                     }
                     else {
-                        cout << "Created Collision!" << endl;
-
-                        goto start;
+                        break;
+                        flight->setId(std::stoi(newId));
                     }
+                    
+                }
 
 
-                }else if (mode == "departure") {
-                    temp = move(flight);
-
-                    if (!checkCollision(temp)) {
-
-                        flight->setDepartureTime(newDepartureTime);
-
-                    }
-                    else {
-                        cout << "Created Collision!" << endl;
-
-                        goto start;
-                    }
-
-
-
-                }else if (mode == "parked") {
+            } while (!Validation::idExist(newId,airport_->getArrivalsids()) and !Validation::idExist(newId, airport_->getDepartureids()) and !Validation::idExist(newId, airport_->getParkedids()));
+        }
+        case 2: {
+            string newBase{};
                 
-                    airport_->getParkedids()[std::stoi(i) - 1]->setDepartureTime(newDepartureTime);
+            do {
+                cout << "Enter new Base: ";
                 
+                cin >> newBase;
+                
+                if (exist(airports_, newBase)) {
+                    flight->setBase(newBase);
+                    break;
+                }
+
+            } while (true);
+        }
+        case 3: {
+            string newDestination;
+                
+            do {
+                cout << "Enter new Destination: ";
+                cin >> newDestination;
+
+                if (exist(airports_, newDestination)) {
+                    flight->setDestination(newDestination);
+                    break;
+                }
+
+
+            } while (!Validation::istext(newDestination) and !Validation::airportExist(airports_, newDestination));
+        }
+        case 4: {
+            string newPlaneName;
+                
+                
+            cout << "Enter new Plane Name: ";
+                
+            cin >> newPlaneName;
+
+            flight->setPlaneName(newPlaneName);
+                
+        }
+        case 5: {
+            string newFlightDate;
+                
+            do {
+                cout << "Enter new Flight Date ( format: YYYY-MM-DD ): ";
+                cin >> newFlightDate;
+
+                if (Validation::isDate(newFlightDate)) {
+                    flight->setFlightDate(newFlightDate);
+                    break;
+                }
+                else {
+                    cout << "invalid date" << endl;
+                }
+
+            } while (true);
+        }
+        case 6: {
+            string newDepartureTime;
+                
+            start:
+
+            do {
+                cout << "Enter new Departure Time ( format: HH:MM ): ";
+                cin >> newDepartureTime;
+                    
+                if (!Validation::isTime(newDepartureTime)) {
+                    cout << "Entered wrong time format";
+                }
+                else {
+                    flight->setDepartureTime(newDepartureTime);
+                    break;
                 }
                 
-                break;
+                
+            } while (true);
+
+
+            if (checkCollision(flight, flight->getDemandIndicator())) {
+
+                cout << "Created Collision!" << endl;
+
+                goto start;
             }
-            case 7: {
-                string newArrivalTime;
-
-                startArr:
-
-                do {
-                    cout << "Enter new Arrival Time: ";
                 
-                    cin >> newArrivalTime;
+            break;
+        }
+        case 7: {
+            string newArrivalTime;
+
+            startArr:
+
+            do {
+                cout << "Enter new Arrival Time ( format: HH:MM ): ";
                 
-                    if (!Validation::isTime(newArrivalTime)) {
+                cin >> newArrivalTime;
+                
+                if (!Validation::isTime(newArrivalTime)) {
                         
-                        cout << "Given time is not in time format" << endl;
+                    cout << "Given time is not in time format" << endl;
 
-                    }
-
-
-                } while (!Validation::isTime(newArrivalTime));
-
-                shared_ptr<Flight>temp;
-
-                if (mode == "arrival") {
-                
-                    temp = move(flight);
-
-                    if (!checkCollision(temp)) {
-
-                        flight->setArrivalTime(newArrivalTime);
-
-                    }
-                    else {
-                        cout << "Created Collision!" << endl;
-
-                        goto startArr;
-                    }
-                
-                }else if (mode == "departure") {
-                
-                    temp = move(flight);
-
-                    if (!checkCollision(temp)) {
-
-                        flight->setArrivalTime(newArrivalTime);
-
-                    }
-                    else {
-                        cout << "Created Collision!" << endl;
-
-                        goto startArr;
-                    }
-                
-                }else if (mode == "parked") {
-                
-                    airport_->getParkedids()[std::stoi(i) - 1]->setArrivalTime(newArrivalTime);
-                
                 }
-                
-                
-                break;
-            }
-            case 0:
-                return;
-            }
+                else {
+                    flight->setArrivalTime(newArrivalTime);
 
-        
+                    break;
+                }
+
+
+            } while (true);
+
+            
+                
+            if (checkCollision(flight, flight->getDemandIndicator())) {
+
+                cout << "Created Collision!" << endl;
+
+                goto startArr;
+            }
+                
+                
+            break;
+        }
+        case 0:
+         
+            
+            if (mode == "departure") {
+                priority_queue<shared_ptr<Flight>> temp = airport_->getDepartureids();
+                priority_queue<shared_ptr<Flight>> newQueue;
+
+                for (int j = 0; j < airport_->getDepartureids().size(); ++j) {
+                    if (j == std::stoi(i) - 1) {
+                        newQueue.push(flight);
+                    }
+                    else {
+                        newQueue.push(temp.top());
+                    }
+                    temp.pop();
+                }
+                airport_->setDepartures(newQueue);
+            }
+            if (mode == "arrival") {
+                priority_queue<shared_ptr<Flight>> temp = airport_->getArrivalsids();
+                priority_queue<shared_ptr<Flight>> newQueue;
+
+                for (int j = 0; j < airport_->getArrivalsids().size(); ++j) {
+                    if (j == std::stoi(i) - 1) {
+                        newQueue.push(flight);
+                    }
+                    else {
+                        newQueue.push(temp.top());
+                    }
+                    temp.pop();
+                }
+                airport_->setArrivals(newQueue);
+            }
+            if (mode == "parked") {
+                vector<shared_ptr<Flight>> temp = airport_->getParkedids();
+                temp[std::stoi(i) - 1] = flight;
+                airport_->setParked(temp);
+            }
+           
+            
+            return;
         }
 
-
     }
-
-    if (std::stoi(k) == 0) {
-        return;
-    }
-
-
 }
 
 
 // check if flight, which controller is willing to add, has any collision with parked/departure/arrival flights
-bool Controller::checkCollision(shared_ptr<Flight>flight) {
-    int i = 0;
+bool Controller::checkCollision(shared_ptr<Flight>flight, int mode) {
+    int i{ 0 };
     bool collision{false};
     priority_queue<shared_ptr<Flight>>temp = airport_->getArrivalsids();
 
     // check all flights for collision
-    for (int j = 0; j <= airport_->getArrivalsids().size(); ++j) {
 
-        if(flight->getArrivalTime() == temp.top()->getArrivalTime() && flight->getFlightDate() == temp.top()->getFlightDate()) {
-            ++i;
+    if(mode ==  -1 or mode == -255){
+        for (int j = 0; j <= airport_->getArrivalsids().size() - 1; ++j) {
             
-            cout << i << ". Collision:" << endl;
-            cout << "Flight: " << temp.top()->getId() << " and Flight" << flight->getId() << endl << endl;
+            if (!(flight == temp.top())) {
             
-            collision = true;
+                if (flight->getArrivalTime() == temp.top()->getArrivalTime() && flight->getFlightDate() == temp.top()->getFlightDate()) {
+                    ++i;
+
+                    cout << i << ". Collision:" << endl;
+                    cout << "Flight: " << temp.top()->getId() << " and Flight: " << flight->getId() << endl << endl;
+
+                    collision = true;
+                
+                }
+            }
+
+            temp.pop();
         }
-        temp.pop();
+         
+    }
+    if (mode == 1 or mode == -255) {
+        temp = airport_->getDepartureids();
+
+        for (int j = 0; j <= airport_->getDepartureids().size() - 1; ++j) {
+            
+            if (!(flight == temp.top())) {
+                if (flight->getDepartureTime() == temp.top()->getDepartureTime() && flight->getFlightDate() == temp.top()->getFlightDate()) {
+                    ++i;
+
+                    cout << i << ". Collision:" << endl;
+                    cout << "Flight: " << temp.top()->getId() << " and Flight" << flight->getId() << endl << endl;
+
+                    collision = true;
+                }
+            }
+            
+            
+            temp.pop();
+        }
+
+        // check if any flight has the same arrival or departure time | includ time delay for arrivals and departures
     }
 
-    temp = airport_->getDepartureids();
-
-    for(int j = 0; j <= airport_->getDepartureids().size(); ++j) {
-        if(flight->getDepartureTime() == temp.top()->getDepartureTime() && flight->getFlightDate() == temp.top()->getFlightDate()) {
-            ++i;
-
-            cout << i << ". Collision:" << endl;
-            cout << "Flight: " << temp.top()->getId() << " and Flight" << flight->getId() << endl << endl;
-
-            collision = true;
-        }
-        temp.pop();
-    }
-
-    // check if any flight has the same arrival or departure time | includ time delay for arrivals and departures
-    
     return collision;
-
 }
 
 void Controller::grantDemand() {
@@ -772,10 +879,28 @@ void Controller::grantDemand() {
 
     do {
         cout << "Choose demand to approve: (To cancel operation - type -255)" << endl;
+        
         cin >> i;
-        if (!!Validation::isnumber(i)) { cout << "Given data is not a number" << endl; }
 
-    } while (!!Validation::isnumber(i) && !Validation::isInRange(std::stoi(i) - 1, 0, airport_->getPendingDemands().size()));
+
+
+        if (!Validation::isnumber(i)) { 
+            
+            cout << "Given data is not a number" << endl; 
+        
+        }else {
+
+            if (Validation::isInRange(std::stoi(i) - 1, 0, airport_->getPendingDemands().size())) {
+                
+                break;
+
+            } else{
+                cout << "Given number is out of range" << endl;
+            }
+        }
+
+
+    } while (true);
 
 
     for (int j = 0; j <= std::stoi(i) - 1; j++) {
@@ -912,6 +1037,38 @@ void Controller::removeFlight(int indicator, shared_ptr<Flight>flight) {
 
 }
 
+vector<shared_ptr<Flight>> Controller::pullFlights() {
+    
+    vector<shared_ptr<Flight>>flights{};
+
+    bool exist{false};
+
+    for (shared_ptr<Airport> airport : airports_) {
+        
+        // get all flights from airport
+        vector<shared_ptr<Flight>>airport_Flights = airport->pullFlights();
+
+        // check if any of flights in airport_Flight already exist in vector flights
+        for (shared_ptr<Flight>obj : airport_Flights) {
+            
+            for (shared_ptr<Flight> flighInFlights : flights) {
+                if (flighInFlights == obj) {
+                    exist = true;
+                }
+            }
+
+            if (!exist) {
+                flights.push_back(obj);
+            }
+            exist = false;
+
+        }
+
+    }
+
+    return flights;
+
+}
 
 
 

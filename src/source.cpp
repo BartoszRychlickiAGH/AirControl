@@ -19,54 +19,58 @@ int main(){
                                     system("timeout /t 5 /nobreak");        <-------  Important
     
     system("cls");*/
+    shared_ptr<Database>db = make_shared<Database>();
+    vector<shared_ptr<Airport>>airports{ db->pullAirports() };
+    vector<shared_ptr<Flight>>flights{ db->pullFlights() };
 
-    while (true) {
-        try {
-            shared_ptr<Database>db = make_shared<Database>();
-            vector<shared_ptr<Airport>>airports{ db->pullAirports() };
-            vector<shared_ptr<Flight>>flights{ db->pullFlights() };
 
-            int i{ 1 }; // index of exact airport
-            string input{};
+    int i{ 1 }; // index of exact airport
+    string input{};
 
-            // displaying all airports
-            cout << "Select airport to control: " << endl;
-            for (shared_ptr<Airport>airport : airports) {
-                cout << i << ". " << endl << "..............................." << endl;
-                airport->display();
-                cout << "..............................." << endl << endl;
-                i++;
+    // displaying all airports
+    
+    for (shared_ptr<Airport>airport : airports) {
+        cout << i << ". " << endl << "..............................." << endl;
+        airport->display();
+        cout << "..............................." << endl << endl;
+        i++;
+    }
+        cout << "Select airport to control: ";
+
+    do {
+        
+        cin >> input;
+        cout << endl;
+
+        if (Validation::isnumber(input)) {
+            if (Validation::isInRange(std::stoi(input), 1, airports.size())) {
+                break;
             }
+            else {
 
+                cout << "Given number doesn't match any of airport's indexe" << endl;
+            }
+        }
+        else {
+            cout << "Given input is NaN" << endl; 1;
+        }
 
-            do {
-                cin >> input;
+        // check if given index of chosen flight is a number and if given index of flight is in bounds(1, airports.size())
+    } while (true);
 
-                if (Validation::isnumber(input)) {
-                    if (Validation::isInRange(std::stoi(input), 1, airports.size())) {
-                        break;
-                    }
-                    else {
+    shared_ptr<Airport>airport = airports[std::stoi(input) - 1];
 
-                        cout << "Given number doesn't match any of airport's indexe" << endl;
-                    }
-                }
-                else {
-                    cout << "Given input is NaN" << endl; 1;
-                }
+    shared_ptr<Controller>controller(new Controller(airport, airports));
 
-                // check if given index of chosen flight is a number and if given index of flight is in bounds(1, airports.size())
-            } while (true);
+    try {
+        while (true) {
 
-            shared_ptr<Airport>airport = airports[std::stoi(input) - 1];
-
-            shared_ptr<Controller>controller(new Controller(airport, airports));
 
             // clearing terminal
-            choosingActionMain:
+        choosingActionMain:
 
-            
-            system("timeout /t 20 /nobreak");
+
+            system("timeout /t 5 /nobreak");
             system("cls");
 
 
@@ -80,243 +84,219 @@ int main(){
 
 
             // entering input by user
-            do{
+            do {
                 cin >> input;
                 if (Validation::isnumber(input)) {
-                    if (Validation::isInRange(std::stoi(input), 0, 4)){
-                        
-                        break;
-                    
-                    }else {
-                    
-                        cout << "Given input is not in bounds" << endl;
-                 
-                    }
-                
-                }else {
-                
-                    cout << "Given input is NaN" << endl;
-                
-                }
-            } while(true);
+                    if (Validation::isInRange(std::stoi(input), 0, 4)) {
 
+                        break;
+
+                    }
+                    else {
+
+                        cout << "Given input is not in bounds" << endl;
+
+                    }
+
+                }
+                else {
+
+                    cout << "Given input is NaN" << endl;
+
+                }
+            } while (true);
+
+
+            if (std::stoi(input) == 0) { // exit program
+                break;
+            }
 
             // calling chosen action
             switch (std::stoi(input)) {
-                case 0:
-                    break;
-                    break;
-                case 1:
-                        controller->getAirport()->display("");
-                    break;
-                case 2:
+            case 1:
+                controller->getAirport()->display("");
+                break;
+            case 2:
 
-                    while (true) {
-                        // manage flights interface
-                        cout << "Choose action to be done on flight" << endl;
-                        cout << "1. Print Flight" << endl;
-                        cout << "2. Add Flight" << endl;
-                        cout << "3. Edit Flight" << endl;
-                        cout << "4. Remove flight" << endl;
-                        cout << "0. Exit" << endl;
+                while (true) {
+                    // manage flights interface
+                    cout << "Choose action to be done on flight" << endl;
+                    cout << "1. Print Flight" << endl;
+                    cout << "2. Add Flight" << endl;
+                    cout << "3. Edit Flight" << endl;
+                    cout << "4. Remove flight" << endl;
+                    cout << "0. Exit" << endl;
 
-                        do {
-                            cin >> input;
+                    do {
+                        cin >> input;
 
-                            if (Validation::isnumber(input)) {
-                                if (Validation::isInRange(std::stoi(input), 0, 4)) {
-                                    break;
-                                }
-                                else {
-                                    cout << "Given number is not in bounds" << endl;
-                                }
+                        if (Validation::isnumber(input)) {
+                            if (Validation::isInRange(std::stoi(input), 0, 4)) {
+                                break;
                             }
                             else {
-                                cout << "Given input is NaN" << endl;
+                                cout << "Given number is not in bounds" << endl;
                             }
-                        } while (true);
-
-
-                        switch (std::stoi(input)) {
-                        case 0:
-                            break;
-                            break;
-                        case 1:
-                            controller->printFlight();
-
-                            break;
-                        case 2:
-                            controller->addFlight();
-
-                            break;
-                        case 3:
-                            controller->editFlight();
-
-                            break;
-                        case 4:
-                            controller->removeFlight();
-
-                            break;
-                        default:
-                            goto choosingActionMain;
-
-                            break;
                         }
+                        else {
+                            cout << "Given input is NaN" << endl;
+                        }
+                    } while (true);
 
-                        system("timeout /t 20 /nobreak");
-                        system("cls");
+                    if (std::stoi(input) == 0) { break; } // exit module
+
+                    switch (std::stoi(input)) {
+                    case 1:
+                        controller->printFlight(); // done
+
+                        break;
+                    case 2:
+                        controller->addFlight(); // done
+
+                        break;
+                    case 3:
+                        controller->editFlight(); // 
+
+                        break;
+                    case 4:
+                        controller->removeFlight();
+
+                        break;
+                    default:
+                        goto choosingActionMain;
+
+                        break;
                     }
 
-                    break;
-                case 3:
-                        // manage airports
-                    while (true) {
+                    system("timeout /t 5 /nobreak");
+                    system("cls");
+                }
 
-                        system("timeout /t 20 /nobreak");
-                        system("cls");
+                break;
+            case 3:
+                // manage airports
+                while (true) {
+
+                    system("timeout /t 5 /nobreak");
+                    system("cls");
 
 
 
-                        cout << "Choose action" << endl;
-                        cout << "1. Change airport" << endl;
-                        cout << "2. Print Airports" << endl;
-                        cout << "3. Print chosen airport" << endl;
-                        cout << "4. Change airport's name" << endl;
-                        cout << "5. Change airport's capacity" << endl;
+                    cout << "0. Exit module" << endl;
+                    cout << "1. Change airport" << endl;
+                    cout << "2. Print Airports" << endl;
+                    cout << "3. Print chosen airport" << endl;
+                    cout << "Choose action: ";
 
-                        do {
-                            cin >> input;
+                    do {
+                        cin >> input, cout << endl;
 
-                            if (Validation::isnumber(input)) {
-                                if (Validation::isInRange(std::stoi(input), 0, 5)) {
-                                    break;
-                                }
-                                else {
-                                    cout << "Given number is not in bounds" << endl;
-                                }
+                        if (Validation::isnumber(input)) {
+                            if (Validation::isInRange(std::stoi(input), 0, 5)) {
+                                break;
                             }
                             else {
-                                cout << "Given input is NaN" << endl;
+                                cout << "Given number is not in bounds" << endl;
                             }
-                        } while (true);
-
-
-                        switch (std::stoi(input)) {
-                        case 0:
-                            //exit 
-                            break;
-                            break;
-                        case 1:
-                            controller->changeAirport();//change airport
-
-                            break;
-                        case 2:
-                            // print airports
-                            
-                            for (int i = 1; shared_ptr<Airport>airport : airports) {
-                                cout << endl << "................................." << endl;
-                                cout << i << endl;
-                                cout << "................................." << endl;
-                            
-                                airport->display();
-                                cout << endl;
-                            }
-
-                            break;
-                        case 3:
-                            // print chosen airport
-                            cout << "Choosen airport" << endl;
-
-                            break;
-                        case 4:
-                            // change chosen airport's name
-
-                            do {
-                                cout << "Enter new airport name: (Disclaimer: enter -1 to exit this action!)", cin >> input, cout << endl;
-                                
-                                if (Validation::istext(input) || input == "-1") {
-                            
-                                    controller->getAirport()->setName(input);
-                                    break;
-                                
-                                }
-                                else {
-                                    cout << "Given input is not a name" << endl;
-                                }
-
-                            } while (true);
-
-                            controller->getAirport()->setName(input);
-
-       
-                            break;
-                        case 5:
-                            // change chosen airport's capacity
-                            
-                            do {
-                                cout << "Enter new capacity of chosen airport: (Disclaimer: to exit this action enter: -1)", cin >> input, cout << endl;
-                            
-                                if (Validation::isnumber(input)) {
-                                   
-                                    controller->getAirport()->setCapacity(std::stoi(input));
-                                    break;
-
-                                }else {
-                                    cout << "Given input is NaN" << endl;
-                                    
-                                }
-                            
-                            } while (true);
-                            
-                            controller->getAirport()->setCapacity(std::stoi(input));
-                            
-                            break;
-                        default:
-                            continue;
-
-                            break;
                         }
+                        else {
+                            cout << "Given input is NaN" << endl;
+                        }
+                    } while (true);
+
+
+                    if (std::stoi(input) == 0) { break; } // exit module
+
+                    switch (std::stoi(input)) {
+                    case 1:
+                        controller->changeAirport();//change airport
+
+                        break;
+                    case 2:
+                        // print airports
+
+                        for (int i = 1; shared_ptr<Airport>airport : airports) {
+                            cout << endl << "................................." << endl;
+                            cout << i << endl;
+                            cout << "................................." << endl;
+
+                            airport->display();
+                            cout << endl;
+                            ++i;
+                        }
+
+                        break;
+                    case 3:
+                        // print chosen airport
+
+                        cout << endl <<"Choosen airport: " << endl;
+                        
+                        controller->getAirport()->display();
+
+                        break;
+                    default:
+                        continue;
+
+                        break;
                     }
+                }
 
-                    break;
-                case 4:
-                        // Demands
-                    controller->grantDemand();
+                break;
+            case 4:
+                // Demands
+                controller->grantDemand();
 
-                    break;
-                default:
-                    break;
+                break;
+            default:
+                break;
             }
-            
-            system("timeout /t 20 /nobreak");
+
+            system("timeout /t 5 /nobreak");
             system("cls");
 
-            // pushing data to database
-            
-                // pushing flights
 
-            for (shared_ptr<Flight>obj : flights) {
-                db->push("Flights", obj->compress()); // obj is compressing to vector of strings to help further function (based in db object) push to SQL database 
-            }
-
-
-                // pushing airports
-            for(shared_ptr<Airport>obj : airports){
-                db->push("Airports", obj->compress()); // obj is compressing to vector of strings to help further function (based in db object) push to SQL database 
-            }
 
         }
-        catch (string& e) {
-            std::cerr << e << endl;
-            break;
-        }
-        catch (std::exception e) {
-            std::cerr << e.what() << endl;
-            break;
-        }
+    
+    
+
+    
+
+    
+    pushData:
+    
+    // pushing data to database
+
+    // pushing flights
+
+    for (shared_ptr<Flight>obj : controller->pullFlights()) { // mind to change interated vectror
+                
+        
+        db->update("Flights", obj->compress()); // obj is compressing to vector of strings to help further function (based in db object) push to SQL database 
     }
 
-   
+
+    // pushing airports
+    for (shared_ptr<Airport>obj : airports) {
+
+
+        db->update("Airports", obj->compress()); // obj is compressing to vector of strings to help further function (based in db object) push to SQL database 
+    }
+
+    cout << "Logging out..." << endl;
+    system("timeout /t 1 /nobreak");
+    system("cls");
+
+    }
+    catch (string& e) {
+        std::cerr << endl << "Error: " << e << endl;
+    }
+    catch (std::exception e) {
+        std::cerr << endl << "Error: " << e.what() << endl;
+    }
+
+
+
     return 0;
 }
 

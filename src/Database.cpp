@@ -18,7 +18,7 @@ Database::Database()
     SQLAllocHandle(SQL_HANDLE_DBC, hEnv, &hDbc);
 
     // Connect to the database
-    SQLCHAR connStr[] = "Driver={ODBC Driver 17 for SQL Server};Server=(localdb)\\ProjectModels;Database=AirDb;Trusted_Connection=yes;";
+    SQLCHAR connStr[] = "Driver={ODBC Driver 17 for SQL Server};Server=(localdb)\\ProjectModels;Database=AirControl;Trusted_Connection=yes;";
     ret = SQLDriverConnect(hDbc, NULL, connStr, SQL_NTS, NULL, 0, NULL, SQL_DRIVER_COMPLETE);
 
     if (!SQL_SUCCEEDED(ret)) {
@@ -184,11 +184,39 @@ vector<shared_ptr<Airport>> Database::pullAirports() {
                 throw std::runtime_error("Failed to retrieve data.");
             }
 
+            
+
             if (i == 1 || i == 3) {
-                tempInt.push_back(static_cast<int>(*reinterpret_cast<SQLINTEGER*>(buffer)));
+                string tempText{};
+
+                
+                for (SQLCHAR c : buffer) {
+                    if (c == '\0') {
+                        break;
+                    }
+                    else {
+                        tempText.push_back(static_cast<char>(c));
+                    }
+                }
+
+                tempInt.push_back(std::stoi(tempText));
             }
             else {
-                tempString.push_back(reinterpret_cast<char*>(buffer));
+                string tempText{""};
+                for (SQLCHAR c : buffer) {
+
+                    if (c == '\0') {
+
+                        break;
+                    }
+                    else {
+                        
+                        
+                        tempText.push_back(static_cast<char>(c));
+                    }
+                }
+
+                tempString.push_back(tempText);
             }
 
         }
@@ -225,6 +253,16 @@ vector<shared_ptr<Airport>> Database::pullAirports() {
         else {
             departures = {};
         }
+
+        
+        // reset variables
+        int size = temp.size();
+
+        for (int i = 0; i < size; ++i) {
+            temp.pop();
+        }
+
+        idString = "";
 
         if (tempString[2] != "none") {
             // get Arrivals
@@ -462,60 +500,67 @@ static shared_ptr<Flight> findFlight(int id, vector<shared_ptr<Flight>>flights) 
     }
 }
 
-void Database::update(string table, vector<string>values) {
+void Database::update(string table, vector<string> values) {
+    if (values.empty()) {
+        throw std::invalid_argument("Values vector cannot be empty.");
+    }
 
-    
-
+    // Allocate statement handle
+    SQLRETURN ret;
     SQLAllocHandle(SQL_HANDLE_STMT, hDbc, &hStmt);
-    string SqlQuery = {"Update " + table};
+    string SqlQuery;
 
     if (table == "Flights") {
-        // update flights
-    
-        // values = [FlightId, Base, Destination, PlaneName, FlightDate, DepartureTime, ArrivalTime, DemandIndicator]
+        // Update flights
+        // values = [Base, Destination, PlaneName, FlightDate, DepartureTime, ArrivalTime, DemandIndicator, FlightId]
 
+        if (values.size() < 8) {
+            throw std::invalid_argument("Insufficient values for updating Flights table.");
+        }
 
-        SqlQuery +=
-            " set Base = " + values[1]
-            + ", set Destination = " + values[2]
-            + ", set PlaneName = " + values[3]
-            + ", FlightDate = " + values[4]
-            + ", DepartureTime = " + values[5]
-            + ", ArrivalTime = " + values[6]
-            + ", DemandIndicator = (?) where FlightId = (?)";
+        SqlQuery = "UPDATE Flights SET Base = ?, Destination = ?, PlaneName = ?, FlightDate = ?, "
+            "DepartureTime = ?, ArrivalTime = ?, DemandIndicator = ? WHERE FlightId = ?";
 
         SQLPrepare(hStmt, (SQLCHAR*)SqlQuery.c_str(), SQL_NTS);
 
-        int temp = std::stoi(values[7]);
-        int tempId = std::stoi(values[0]);
+        // Bind parameters
+        SQLBindParameter(hStmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0, (SQLCHAR*)values[0].c_str(), 0, NULL); // Base
+        SQLBindParameter(hStmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0, (SQLCHAR*)values[1].c_str(), 0, NULL); // Destination
+        SQLBindParameter(hStmt, 3, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0, (SQLCHAR*)values[2].c_str(), 0, NULL); // PlaneName
+        SQLBindParameter(hStmt, 4, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0, (SQLCHAR*)values[3].c_str(), 0, NULL); // FlightDate
+        SQLBindParameter(hStmt, 5, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0, (SQLCHAR*)values[4].c_str(), 0, NULL); // DepartureTime
+        SQLBindParameter(hStmt, 6, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0, (SQLCHAR*)values[5].c_str(), 0, NULL); // ArrivalTime
 
-        SQLBindParameter(hStmt, static_cast<SQLUSMALLINT>(0), SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &temp, 0, NULL);
-        SQLBindParameter(hStmt, static_cast<SQLUSMALLINT>(1), SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &tempId, 0, NULL);
+        int demandIndicator = std::stoi(values[6]);
+        int flightId = std::stoi(values[7]);
+        SQLBindParameter(hStmt, 7, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &demandIndicator, 0, NULL); // DemandIndicator
+        SQLBindParameter(hStmt, 8, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &flightId, 0, NULL);        // FlightId
 
 
     }else {
         // update airports
 
 
-        // values = [AirportId, AirportName, Capacity, DepartureIds, ArrivalIds, parkedIds, departureDemand, arrivalDemand, parkDemand]
+        // values = [AirportName, Capacity, DepartureIds, ArrivalIds, parkedIds, departureDemand, arrivalDemand, parkDemand, airportId]
 
-        SqlQuery += 
-            " set AirportName = " + values[1]
-            + ", set Capacity = (?)"
-            + ", set DepartureIds = " + values[3]
-            + ", set ArrivalIds = " + values[4]
-            + ", set parkedIds = " + values[5]
-            + ", set departureDemands = " + values[6]
-            + ", set arrivalDemands = " + values[7]
-            + ", set parkDemands = " + values[8] + " Where AirportId = (?)";
+        SqlQuery = "UPDATE Airports SET AirportName = ?, Capacity = ?, DepartureIds = ?, ArrivalIds = ?, "
+        "ParkedIds = ?, departureDemands = ?, arrivalDemands = ?, parkDemands = ? WHERE AirportId = ?";
 
-        auto temp = std::stoi(values[2]);
-        auto tempId = std::stoi(values[0]);
+        SQLPrepare(hStmt, (SQLCHAR*)SqlQuery.c_str(), SQL_NTS);
+
+        int temp = std::stoi(values[1]);
+        int tempId = std::stoi(values[8]);
 
 
-        SQLBindParameter(hStmt, static_cast<SQLUSMALLINT>(0), SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &temp, 0, NULL);
-        SQLBindParameter(hStmt, static_cast<SQLUSMALLINT>(1), SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &tempId, 0, NULL);
-
+        SQLBindParameter(hStmt, static_cast<SQLUSMALLINT>(1), SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0, (SQLPOINTER*)values[0].c_str(), 0, NULL); // AirportName
+        SQLBindParameter(hStmt, static_cast<SQLUSMALLINT>(2), SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &temp, 0, NULL);                         // Capacity
+        SQLBindParameter(hStmt, static_cast<SQLUSMALLINT>(3), SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0, (SQLPOINTER*)values[2].c_str(), 0, NULL); // DepartureIds
+        SQLBindParameter(hStmt, static_cast<SQLUSMALLINT>(4), SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0, (SQLPOINTER*)values[3].c_str(), 0, NULL); // ArrivalIds
+        SQLBindParameter(hStmt, static_cast<SQLUSMALLINT>(5), SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0, (SQLPOINTER*)values[4].c_str(), 0, NULL); // ParkedIds
+        SQLBindParameter(hStmt, static_cast<SQLUSMALLINT>(6), SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0, (SQLPOINTER*)values[5].c_str(), 0, NULL); // DepartureDemand
+        SQLBindParameter(hStmt, static_cast<SQLUSMALLINT>(7), SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0, (SQLPOINTER*)values[6].c_str(), 0, NULL); // ArrivalDemand
+        SQLBindParameter(hStmt, static_cast<SQLUSMALLINT>(8), SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0, (SQLPOINTER*)values[7].c_str(), 0, NULL); // ParkDemand
+        SQLBindParameter(hStmt, static_cast<SQLUSMALLINT>(9), SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &tempId, 0, NULL);
 
     }
 
@@ -543,13 +588,18 @@ void Database::update(string table, vector<string>values) {
 }
 
 
-// in case of have a need to compare types
-template <typename T>
-void analyzeType(T t) {
-    
-    // is string -> insert into strings
 
-    // is bool -> insert into bools
-
-    //is int -> insert into ints
-}
+//// in case of have a need to compare types
+//template <typename T>
+//void analyzeType(T t) {
+//    
+//    // is string -> insert into strings
+//    if (T.typeId(string)) {
+//        
+//    }else if(T.typeId)
+//
+//
+//    // is bool -> insert into bools
+//
+//    //is int -> insert into ints
+//}

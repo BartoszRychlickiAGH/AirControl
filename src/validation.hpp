@@ -6,10 +6,11 @@
 #include <sstream>
 #include <iomanip>
 #include <vector>
+#include "validation.hpp"
 
 #include "Airport.hpp"
 
-using std::string, std::regex_match, std::regex, std::vector;
+using std::string, std::regex_match, std::regex, std::vector, std::regex_search;
 
 class Validation{
     private:
@@ -123,8 +124,10 @@ class Validation{
     }
 
     static bool checkFlightMode(string mode){
-        return (mode == "arrival" || mode == "departure" || mode == "parked" || mode == "Arrival" || mode == "Departure" || mode == "Parked")? true: false;
+        return (regex_match(mode, regex(R"(^[Dd]epartures?)")) || regex_match(mode, regex(R"(^[Aa]rrivals?)")) || regex_match(mode, regex(R"(^[Pp]arke?d?)")))? true: false;
     }
+
+    // regex_match(mode,)
 
     // check if airport of given name exist
     static bool airportExist(vector<shared_ptr<Airport>> airports, string& name){
@@ -230,4 +233,22 @@ static string getCurrentTime() {
 
     // Zwracamy czas w typie string
     return time_stream.str();
+}
+
+
+template<typename T>
+int findElemInVec(vector<shared_ptr<T>> data, shared_ptr<T>obj) {
+
+    int i{0};
+
+    for (shared_ptr<T> elem : data) {
+        if (elem == obj) {
+            return i;
+        }
+
+        ++i;
+
+    }
+
+    return -255;
 }

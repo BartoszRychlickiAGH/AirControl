@@ -10,4 +10,5 @@ class IPrint{
 class IPrintAirport{
     public:
         virtual void display(std::string mode = "") = 0;
+        virtual void displayFlights() = 0;
 };

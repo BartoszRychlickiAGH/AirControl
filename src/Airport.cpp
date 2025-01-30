@@ -15,10 +15,14 @@ pendingDemands(p_pendingDemands)
 // methods inherited from interfaces
 void Airport::display() {
     cout << "Airport Id: " << id_ << " | Name: "<< name_ << endl;
-    cout << "Taken parking slots: " << parked_.size() << "/" << capacity_ << endl;
+    //cout << "Taken parking slots: " << parked_.size() << "/" << capacity_ << endl;
+    displayFlights();
+}
+void Airport::displayFlights() {
     displayDepartures();
     displayArrivals();
     displayParked();
+
 }
 
 bool Airport::isFull() { 
@@ -85,7 +89,7 @@ void Airport::checkDemands() {
 
             // check if given demand exist ifn then add do pendingDemands
             
-            if (Validation::isInMultimap(temp1.top()->getDemandIndicator(), temp1.top(), pendingDemands)) {
+            if (temp1.top()->getDemandIndicator() != -255 and !Validation::isInMultimap(temp1.top()->getDemandIndicator(), temp1.top(), pendingDemands)) {
             
                 pendingDemands.insert(std::make_pair(temp1.top()->getDemandIndicator(), temp1.top()));
 
@@ -104,7 +108,7 @@ void Airport::checkDemands() {
 
 
             // check if given demand exist ifn then add do pendingDemands
-            if (Validation::isInMultimap(temp2.top()->getDemandIndicator(), temp2.top(), pendingDemands)) {
+            if (temp2.top()->getDemandIndicator() != -255 and !Validation::isInMultimap(temp2.top()->getDemandIndicator(), temp2.top(), pendingDemands)) {
 
                 pendingDemands.insert(std::make_pair(temp2.top()->getDemandIndicator(), temp2.top()));
 
@@ -118,9 +122,9 @@ void Airport::checkDemands() {
         }
     }
 
-    // updating arrivals_ and departure_
-    arrivals_ = temp_arr;
-    departures_ = temp_dep;
+    //// updating arrivals_ and departure_
+    //arrivals_ = temp_arr;
+    //departures_ = temp_dep;
 
 
     
@@ -140,13 +144,13 @@ void Airport::checkDemands() {
 }
 
 void Airport::display(string mode) {
-    if(mode == "arrival" || mode == "Arrival"){
+    if(regex_match(mode, regex(R"(^[Aa]rrivals?)"))) {
         displayArrivals();
-    }else if(mode == "departure" || mode == "Departure"){
+    }else if(regex_match(mode, regex(R"(^[Dd]epartures?)"))) {
         displayDepartures();
-    }else if(mode == "parked" || mode == "Parked"){
+    }else if(regex_match(mode, regex(R"(^[Pp]arke?d?)"))) {
         displayParked();
-    }else if(mode == "") {
+    }else{
         displayArrivals();
         displayDepartures();
         displayParked();
@@ -154,34 +158,34 @@ void Airport::display(string mode) {
 }
 
 vector<string> Airport::compress() {
-    vector<string>data{};
+    vector<string>data{"","", "", "", "", "", "", "", ""};
 
     data[0] = getAirportName();
+    
     data[1] = std::to_string(getCapacity());
-    data[2] = "";
-    data[3] = "";
 
     {
         priority_queue<shared_ptr<Flight>>temp = departures_;
-         
+
         // inserting in reverse
         while (temp.size() != 0) {
-            data[2] += temp.top()->getId() + ",";
-            
-            temp.pop();
-        }
-
-        temp = arrivals_;
-
-        while (temp.size() != 0) {
-            data[3] += temp.top()->getId() + ",";
+            data[2] += std::to_string(temp.top()->getId()) + ",";
 
             temp.pop();
         }
 
     }
+        
+    {
+        priority_queue<shared_ptr<Flight>>temp = arrivals_;
 
-    data[4] = "";
+        while (temp.size() != 0) {
+            data[3] += std::to_string(temp.top()->getId()) + ",";
+
+            temp.pop();
+        }
+
+    }
 
     for (shared_ptr<Flight>flight : parked_) {
         string tempStr{std::to_string(flight->getId())};
@@ -192,8 +196,6 @@ vector<string> Airport::compress() {
 
         data[4] += tempStr;
     }
-
-    data[5] = ""; data[6] = ""; data[7] = "";
 
     for (auto it = pendingDemands.begin(); it != pendingDemands.end(); ++it) {
         if (it->first == 1) { // departures
@@ -207,8 +209,100 @@ vector<string> Airport::compress() {
         }
     }
 
+    data[8] = getAirportId();
+
     return data;
 }
+
+vector<shared_ptr<Flight>> Airport::pullFlights() {
+    vector<shared_ptr<Flight>> flights;
+    
+    priority_queue<shared_ptr<Flight>>queue = getArrivalsids();
+
+    int size = getArrivalsids().size();
+    bool exist{ false };
+
+
+
+    // pull arrivals and check if any flight already exist in flight vector
+    if (queue.size() > 0) {
+        for (int i = 0; i < size; ++i) {
+            
+            if (queue.size() == 0) { break; }
+            
+            for (shared_ptr<Flight>flight : flights) {
+
+
+                if (flight == queue.top()) {
+                    exist = true;
+                }
+
+            }
+
+            if (!exist) {
+                flights.push_back(queue.top());
+            }
+
+            
+
+            queue.pop();
+            exist = false;
+
+        }
+    }
+
+    
+    // pulling departures
+    queue = getDepartureids();
+    exist = false;
+
+    // pull departure and check if any flight already exist in flight vector
+    
+    if (queue.size() > 0) {
+        for (int i = 0; i < size; ++i) {
+
+            if (queue.size() == 0) { break; }
+
+            for (shared_ptr<Flight>flight : flights) {
+                if (flight == queue.top()) {
+                    exist = true;
+                }
+            }
+
+            if (!exist) {
+                flights.push_back(queue.top());
+            }
+
+
+            queue.pop();
+            exist = false;
+
+        }
+    }
+    
+    
+    exist = false;
+
+    for (shared_ptr<Flight> flight : getParkedids()) {
+        for (shared_ptr<Flight> obj : flights) {
+            if (obj == flight) {
+                exist = true;
+            }
+        }
+
+        if (!exist) {
+            flights.push_back(flight);
+        }
+
+        exist = false;
+
+    }
+
+
+    return flights;
+}
+
+
 
 
 

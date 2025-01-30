@@ -29,13 +29,14 @@ void Flight::arrival() {
 vector<string> Flight::compress() {
     vector<string>data;
 
-    data[0] = getBase();
-    data[1] = getDestination();
-    data[2] = getPlaneName();
-    data[3] = getFlightDate();
-    data[4] = getDepartureTime();
-    data[5] = getArrivalTime();
-    data[6] = getDemandIndicator();
+    data.push_back(getBase());
+    data.push_back(getDestination());
+    data.push_back(getPlaneName());
+    data.push_back(getFlightDate());
+    data.push_back(getDepartureTime());
+    data.push_back(getArrivalTime());
+    data.push_back(std::to_string(getDemandIndicator()));
+    data.push_back(std::to_string(getId()));
 
     return data;
 }
@@ -56,4 +57,17 @@ int Flight::getDemandIndicator(void)  const{ return demandIndicator;}   void Fli
 // operators overload
 bool Flight::operator==(const shared_ptr<Flight>& obj) {
     return (obj->getId() == getId()) ? true : false;
+}
+
+void Flight::operator=(const shared_ptr<Flight>& obj) {
+    if (this != obj.get()) {
+        id_ = obj->getId();
+        base_ = obj->getBase();
+        destination_ = obj->getDestination();
+        planeName_ = obj->getPlaneName();
+        flightDate_ = obj->getFlightDate();
+        departureTime_ = obj->getDepartureTime();
+        arrivalTime_ = obj->getArrivalTime();
+        demandIndicator = obj->getDemandIndicator();
+    }
 }

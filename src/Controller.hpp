@@ -18,10 +18,11 @@ class Controller : public IController, public IControlAirport, public IControllR
         void addFlight() override;
         void removeFlight() override;
         void editFlight() override;
-        bool checkCollision(shared_ptr<Flight>flight) override;
+        bool checkCollision(shared_ptr<Flight>flight, int mode) override;
         void grantDemand() override;
         void checkDemands() override;
         void removeFlight(int indicator, shared_ptr<Flight>flight) override;
+        vector<shared_ptr<Flight>> pullFlights() override;
 
         //setters and getters
         void setAirport(shared_ptr<Airport>p_airports);
