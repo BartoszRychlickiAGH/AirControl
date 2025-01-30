@@ -485,6 +485,8 @@ void Controller::editFlight() {
 
             cin >> i;
 
+            if (i == "0") { i = "1"; }
+
             if (!Validation::isnumber(i) || regex_match(mode, regex(R"(^[Aa]rrivals?)")) && std::stoi(i) > airport_->getArrivalsids().size()) {
                 validate = false;
             }
@@ -878,10 +880,11 @@ void Controller::grantDemand() {
     checkDemands();
 
     do {
-        cout << "Choose demand to approve: (To cancel operation - type -255)" << endl;
+        cout << "Choose demand to approve: (To cancel operation type -255)" << endl;
         
         cin >> i;
 
+        if (i == "-255") { return; }
 
 
         if (!Validation::isnumber(i)) { 
@@ -889,6 +892,7 @@ void Controller::grantDemand() {
             cout << "Given data is not a number" << endl; 
         
         }else {
+
 
             if (Validation::isInRange(std::stoi(i) - 1, 0, airport_->getPendingDemands().size())) {
                 
@@ -903,7 +907,7 @@ void Controller::grantDemand() {
     } while (true);
 
 
-    for (int j = 0; j <= std::stoi(i) - 1; j++) {
+    for (int j = 0; j < std::stoi(i)-1; j++) {
         it++;
     }
     // otherwise grant demands by adding flights to airport's vectors and changing flight's indicator, remove from demands
@@ -915,14 +919,15 @@ void Controller::grantDemand() {
         case 1: // departure
         
             // insert obj (which is stored under it->second) into departures_ 
+            
             temp.push(it->second);
 
             // remove from parked
             removeFlight(0, it->second);
 
-            airport_->setDepartures(temp);
+            // airport_->setDepartures(temp);
 
-
+            // it->second->setdemandIndicator(2);
             // refactor: delete from demands
 
             // remove from demands
@@ -938,7 +943,7 @@ void Controller::grantDemand() {
             temp2.push_back(it->second);
             
             // delete from arrival
-            removeFlight(-1, it->second);
+            // removeFlight(-1, it->second);
 
             // refacotr: delete from demands
 
@@ -961,14 +966,14 @@ void Controller::grantDemand() {
 }
 void Controller::checkDemands() {
     // check airport for demands
-    auto it = airport_->getPendingDemands().begin();
-    int i{1};
 
+    int i{1};
+    multimap<int, shared_ptr<Flight>>tempMultimap = airport_->getPendingDemands();
     // print all demands
 
     cout << "Pending Demands: " << endl;
 
-    for (it; it != airport_->getPendingDemands().end(); it++) {
+    for (auto it = tempMultimap.begin(); it != tempMultimap.end(); it++) {
         cout << i << ". Demand Type: " << it->first << " | Flight: " << it->second->getId() << endl;
         i++;
     }

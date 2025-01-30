@@ -89,7 +89,7 @@ void Airport::checkDemands() {
 
             // check if given demand exist ifn then add do pendingDemands
             
-            if (temp1.top()->getDemandIndicator() != -255 and !Validation::isInMultimap(temp1.top()->getDemandIndicator(), temp1.top(), pendingDemands)) {
+            if (temp1.top()->getDemandIndicator() == 1 and !Validation::isInMultimap(temp1.top()->getDemandIndicator(), temp1.top(), pendingDemands)) {
             
                 pendingDemands.insert(std::make_pair(temp1.top()->getDemandIndicator(), temp1.top()));
 
@@ -108,13 +108,13 @@ void Airport::checkDemands() {
 
 
             // check if given demand exist ifn then add do pendingDemands
-            if (temp2.top()->getDemandIndicator() != -255 and !Validation::isInMultimap(temp2.top()->getDemandIndicator(), temp2.top(), pendingDemands)) {
+            if (temp2.top()->getDemandIndicator() == -1 and !Validation::isInMultimap(temp2.top()->getDemandIndicator(), temp2.top(), pendingDemands)) {
 
                 pendingDemands.insert(std::make_pair(temp2.top()->getDemandIndicator(), temp2.top()));
 
             }
 
-            if (temp2.top()->getDemandIndicator() == 1) {
+            if (temp2.top()->getDemandIndicator() == -1) {
                 temp_arr.push(temp2.top());
             }
 
